@@ -400,7 +400,12 @@ class StreamDiffusion:
         )[0]
         return output_latent
 
-    def predict_x0_batch(self, x_t_latent: torch.Tensor) -> torch.Tensor:
+    def predict_x0_batch(
+        self, 
+        x_t_latent: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+        mask_latent: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
@@ -410,7 +415,7 @@ class StreamDiffusion:
                 self.stock_noise = torch.cat(
                     (self.init_noise[0:1], self.stock_noise[:-1]), dim=0
                 )
-            x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
+            x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list, mask=mask, mask_latent=mask_latent)
 
             if self.denoising_steps_num > 1:
                 x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
@@ -452,11 +457,20 @@ class StreamDiffusion:
 
     @torch.no_grad()
     def __call__(
-        self, x: Union[torch.Tensor, PIL.Image.Image, np.ndarray] = None
+        self, 
+        x: Union[torch.Tensor, PIL.Image.Image, np.ndarray] = None,
+        mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         start = torch.cuda.Event(enable_timing=True)
         end = torch.cuda.Event(enable_timing=True)
         start.record()
+        
+        # create mask_latent if mask is not None
+        mask_latent = None
+        if mask is not None:
+            mask_latent = retrieve_latents(self.vae.encode(mask), self.generator)
+            mask_latent = mask_latent * self.vae.config.scaling_factor
+        
         if x is not None:
             x = self.image_processor.preprocess(x, self.height, self.width).to(
                 device=self.device, dtype=self.dtype
@@ -472,7 +486,11 @@ class StreamDiffusion:
             x_t_latent = torch.randn((1, 4, self.latent_height, self.latent_width)).to(
                 device=self.device, dtype=self.dtype
             )
-        x_0_pred_out = self.predict_x0_batch(x_t_latent)
+            
+        if mask is not None:
+            x_0_pred_out = self.predict_x0_batch(x_t_latent, mask=mask, mask_latent=mask_latent)
+        else:
+            x_0_pred_out = self.predict_x0_batch(x_t_latent)
         x_output = self.decode_image(x_0_pred_out).detach().clone()
 
         self.prev_image_result = x_output
