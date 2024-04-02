@@ -12,6 +12,8 @@ from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_img2img impo
 
 from streamdiffusion.image_filter import SimilarImageFilter
 
+from PIL import Image
+
 
 class StreamDiffusion:
     def __init__(
@@ -454,6 +456,29 @@ class StreamDiffusion:
             x_0_pred_out = x_0_pred
 
         return x_0_pred_out
+    
+    def preprocess_image(self, image: Union[str, Image.Image]) -> torch.Tensor:
+        """
+        Preprocesses the image.
+
+        Parameters
+        ----------
+        image : Union[str, Image.Image, torch.Tensor]
+            The image to preprocess.
+
+        Returns
+        -------
+        torch.Tensor
+            The preprocessed image.
+        """
+        if isinstance(image, str):
+            image = Image.open(image).convert("RGB").resize((self.width, self.height))
+        if isinstance(image, Image.Image):
+            image = image.convert("RGB").resize((self.width, self.height))
+
+        return self.stream.image_processor.preprocess(
+            image, self.height, self.width
+        ).to(device=self.device, dtype=self.dtype)
 
     @torch.no_grad()
     def __call__(
