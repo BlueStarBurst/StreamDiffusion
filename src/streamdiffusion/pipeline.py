@@ -476,7 +476,7 @@ class StreamDiffusion:
         if isinstance(image, Image.Image):
             image = image.convert("RGB").resize((self.width, self.height))
 
-        return self.stream.image_processor.preprocess(
+        return self.image_processor.preprocess(
             image, self.height, self.width
         ).to(device=self.device, dtype=self.dtype)
 
