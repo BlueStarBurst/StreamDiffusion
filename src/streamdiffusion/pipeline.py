@@ -569,7 +569,7 @@ class StreamDiffusion:
         batch_size = 1
         crops_coords = None
         resize_mode = "default"
-        device = self._execution_device
+        device = self.pipe._execution_device
 
         # at which timestep to set the initial noise (n.b. 50% if strength is 0.5)
         latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
