@@ -545,6 +545,11 @@ class StreamDiffusion:
 
         return image_latents
 
+
+    @property
+    def do_classifier_free_guidance(self):
+        return self._guidance_scale > 1 and self.unet.config.time_cond_proj_dim is None
+
     @torch.no_grad()
     def __call__(
         self, 
@@ -589,7 +594,7 @@ class StreamDiffusion:
             prompt,
             device,
             num_images_per_prompt,
-            self.pipe.do_classifier_free_guidance,
+            self.do_classifier_free_guidance,
             negative_prompt,
             prompt_embeds=prompt_embeds,
             negative_prompt_embeds=negative_prompt_embeds,
