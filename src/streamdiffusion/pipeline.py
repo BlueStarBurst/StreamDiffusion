@@ -4,11 +4,14 @@ from typing import List, Optional, Union, Any, Dict, Tuple, Literal
 import numpy as np
 import PIL.Image
 import torch
-from diffusers import LCMScheduler, StableDiffusionPipeline
+from diffusers import LCMScheduler, StableDiffusionPipeline 
 from diffusers.image_processor import VaeImageProcessor
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_img2img import (
     retrieve_latents,
 )
+
+from ...image_processor import PipelineImageInput, VaeImageProcessor
+
 
 from streamdiffusion.image_filter import SimilarImageFilter
 
@@ -570,7 +573,7 @@ class StreamDiffusion:
 
         # at which timestep to set the initial noise (n.b. 50% if strength is 0.5)
         latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
-        
+
         # Set image and init_image
         original_image = image
         init_image = self.image_processor.preprocess(
@@ -600,21 +603,21 @@ class StreamDiffusion:
 
 
         # Set regular latents
-        latents_outputs = self.prepare_latents(
-            batch_size * num_images_per_prompt,
-            num_channels_latents,
-            height,
-            width,
-            prompt_embeds.dtype,
-            device,
-            generator,
-            latents,
-            image=init_image,
-            timestep=latent_timestep,
-            is_strength_max=is_strength_max,
-            return_noise=True,
-            return_image_latents=return_image_latents,
-        )
+        # latents_outputs = self.prepare_latents(
+        #     batch_size * num_images_per_prompt,
+        #     num_channels_latents,
+        #     height,
+        #     width,
+        #     prompt_embeds.dtype,
+        #     device,
+        #     generator,
+        #     latents,
+        #     image=init_image,
+        #     timestep=latent_timestep,
+        #     is_strength_max=is_strength_max,
+        #     return_noise=True,
+        #     return_image_latents=return_image_latents,
+        # )
 
         mask_condition = self.mask_processor.preprocess(
             mask_image, height=height, width=width, resize_mode=resize_mode, crops_coords=crops_coords
