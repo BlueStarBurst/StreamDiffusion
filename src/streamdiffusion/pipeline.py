@@ -10,7 +10,7 @@ from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_img2img impo
     retrieve_latents,
 )
 
-from ...image_processor import PipelineImageInput, VaeImageProcessor
+# from ...image_processor import PipelineImageInput, VaeImageProcessor
 
 
 from streamdiffusion.image_filter import SimilarImageFilter
@@ -549,7 +549,7 @@ class StreamDiffusion:
     def __call__(
         self, 
         x: Union[torch.Tensor, PIL.Image.Image, np.ndarray] = None,
-        image: PipelineImageInput = None,
+        # image: PipelineImageInput = None,
         prompt: Union[str, List[str]] = None,
         negative_prompt: Optional[Union[str, List[str]]] = None,
         mask: Optional[torch.Tensor] = None,
@@ -575,11 +575,11 @@ class StreamDiffusion:
         latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
 
         # Set image and init_image
-        original_image = image
-        init_image = self.image_processor.preprocess(
-            image, height=height, width=width, crops_coords=crops_coords, resize_mode=resize_mode
-        )
-        init_image = init_image.to(dtype=torch.float32)
+        # original_image = image
+        # init_image = self.image_processor.preprocess(
+        #     image, height=height, width=width, crops_coords=crops_coords, resize_mode=resize_mode
+        # )
+        # init_image = init_image.to(dtype=torch.float32)
 
         # encode input prompt
         text_encoder_lora_scale = (
