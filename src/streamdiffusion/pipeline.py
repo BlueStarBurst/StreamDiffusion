@@ -572,14 +572,14 @@ class StreamDiffusion:
         device = self.pipe._execution_device
 
         # at which timestep to set the initial noise (n.b. 50% if strength is 0.5)
-        latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
+        # latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
 
         # Set image and init_image
         # original_image = image
         # init_image = self.image_processor.preprocess(
         #     image, height=height, width=width, crops_coords=crops_coords, resize_mode=resize_mode
         # )
-        # init_image = init_image.to(dtype=torch.float32)
+        init_image = init_image.to(dtype=torch.float32)
 
         # encode input prompt
         text_encoder_lora_scale = (
