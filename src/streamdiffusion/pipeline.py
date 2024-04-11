@@ -579,7 +579,7 @@ class StreamDiffusion:
         # init_image = self.image_processor.preprocess(
         #     image, height=height, width=width, crops_coords=crops_coords, resize_mode=resize_mode
         # )
-        init_image = init_image.to(dtype=torch.float32)
+        # init_image = init_image.to(dtype=torch.float32)
 
         # encode input prompt
         text_encoder_lora_scale = (
@@ -630,8 +630,8 @@ class StreamDiffusion:
             mask_latent = mask_latent * self.vae.config.scaling_factor
         
         if mask_latent is None:
-            masked_image = init_image * (mask_condition < 0.5)
-        else:
+        #     masked_image = init_image * (mask_condition < 0.5)
+        # else:
             masked_image = masked_image_latents
         
         mask, masked_image_latents = self.prepare_mask_latents(
