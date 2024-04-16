@@ -565,6 +565,7 @@ class StreamDiffusion:
         width: Optional[int] = None,
         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
         cross_attention_kwargs: Optional[Dict[str, Any]] = None,
+        guidance_scale: float = 7.5,
     ) -> torch.Tensor:
         start = torch.cuda.Event(enable_timing=True)
         end = torch.cuda.Event(enable_timing=True)
