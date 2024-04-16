@@ -545,6 +545,10 @@ class StreamDiffusion:
 
         return image_latents
 
+    @property
+    def clip_skip(self):
+        return self._clip_skip
+
 
     @property
     def do_classifier_free_guidance(self):
