@@ -556,6 +556,7 @@ class StreamDiffusion:
         x: Union[torch.Tensor, PIL.Image.Image, np.ndarray] = None,
         # image: PipelineImageInput = None,
         prompt: Union[str, List[str]] = None,
+        prompt_embeds: Optional[torch.FloatTensor] = None,
         negative_prompt: Optional[Union[str, List[str]]] = None,
         mask: Optional[torch.Tensor] = None,
         num_images_per_prompt: Optional[int] = 1,
