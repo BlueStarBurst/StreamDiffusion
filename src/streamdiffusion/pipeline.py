@@ -558,6 +558,7 @@ class StreamDiffusion:
         prompt: Union[str, List[str]] = None,
         prompt_embeds: Optional[torch.FloatTensor] = None,
         negative_prompt: Optional[Union[str, List[str]]] = None,
+        negative_prompt_embeds: Optional[torch.FloatTensor] = None,
         mask: Optional[torch.Tensor] = None,
         num_images_per_prompt: Optional[int] = 1,
         latents: Optional[torch.FloatTensor] = None,
