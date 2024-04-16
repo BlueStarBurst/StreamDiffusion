@@ -568,6 +568,7 @@ class StreamDiffusion:
         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
         cross_attention_kwargs: Optional[Dict[str, Any]] = None,
         guidance_scale: float = 7.5,
+        clip_skip: Optional[int] = None,
     ) -> torch.Tensor:
         start = torch.cuda.Event(enable_timing=True)
         end = torch.cuda.Event(enable_timing=True)
@@ -579,6 +580,7 @@ class StreamDiffusion:
         resize_mode = "default"
         device = self.pipe._execution_device
         self._guidance_scale = guidance_scale
+        self._clip_skip = clip_skip
 
         # at which timestep to set the initial noise (n.b. 50% if strength is 0.5)
         # latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
