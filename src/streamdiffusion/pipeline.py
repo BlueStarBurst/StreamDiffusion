@@ -42,6 +42,7 @@ class StreamDiffusion:
 
         self.latent_height = int(height // pipe.vae_scale_factor)
         self.latent_width = int(width // pipe.vae_scale_factor)
+        self.vae_scale_factor = pipe.vae_scale_factor
 
         self.frame_bff_size = frame_buffer_size
         self.denoising_steps_num = len(t_index_list)
