@@ -42,7 +42,7 @@ class StreamDiffusion:
 
         self.latent_height = int(height // pipe.vae_scale_factor)
         self.latent_width = int(width // pipe.vae_scale_factor)
-        self.vae_scale_factor = pipe.vae_scale_factor
+        # self.vae_scale_factor = pipe.vae_scale_factor
 
         self.frame_bff_size = frame_buffer_size
         self.denoising_steps_num = len(t_index_list)
@@ -77,9 +77,9 @@ class StreamDiffusion:
         self.pipe = pipe
         
         self.vae_scale_factor = 2 ** (len(self.vae.config.block_out_channels) - 1)
-        self.image_processor = VaeImageProcessor(self.vae_scale_factor)
+        self.image_processor = VaeImageProcessor(pipe.vae_scale_factor)
         self.mask_processor = VaeImageProcessor(
-            vae_scale_factor=self.vae_scale_factor, do_normalize=False, do_binarize=True, do_convert_grayscale=True
+            vae_scale_factor=pipe.vae_scale_factor, do_normalize=False, do_binarize=True, do_convert_grayscale=True
         )
 
         self.scheduler = LCMScheduler.from_config(self.pipe.scheduler.config)
