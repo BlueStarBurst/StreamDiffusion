@@ -5,6 +5,7 @@ import numpy as np
 import PIL.Image
 import torch
 from diffusers import LCMScheduler, StableDiffusionPipeline 
+from ...models import AsymmetricAutoencoderKL, AutoencoderKL
 from diffusers.image_processor import VaeImageProcessor, PipelineImageInput
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_img2img import (
     retrieve_latents,
@@ -22,6 +23,7 @@ class StreamDiffusion:
     def __init__(
         self,
         pipe: StableDiffusionPipeline,
+        vae: Union[AutoencoderKL, AsymmetricAutoencoderKL],
         t_index_list: List[int],
         torch_dtype: torch.dtype = torch.float16,
         width: int = 512,
@@ -72,6 +74,8 @@ class StreamDiffusion:
         self.prev_image_result = None
 
         self.pipe = pipe
+        
+        self.vae_scale_factor = 2 ** (len(self.vae.config.block_out_channels) - 1)
         self.image_processor = VaeImageProcessor(pipe.vae_scale_factor)
         self.mask_processor = VaeImageProcessor(
             vae_scale_factor=self.vae_scale_factor, do_normalize=False, do_binarize=True, do_convert_grayscale=True
