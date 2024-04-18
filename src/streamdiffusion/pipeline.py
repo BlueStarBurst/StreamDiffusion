@@ -606,7 +606,7 @@ class StreamDiffusion:
             num_images_per_prompt,
             self.do_classifier_free_guidance,
             negative_prompt,
-            prompt_embeds=prompt_embeds,
+            prompt_embeds= self.prompt_embeds,
             negative_prompt_embeds=negative_prompt_embeds,
             lora_scale=text_encoder_lora_scale,
             clip_skip=self.clip_skip,
