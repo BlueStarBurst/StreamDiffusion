@@ -637,7 +637,7 @@ class StreamDiffusion:
         #     return_image_latents=return_image_latents,
         # )
 
-        mask_condition = self.mask_processor.preprocess(
+        mask_condition = self.pipe.mask_processor.preprocess(
             mask_image, height=height, width=width, resize_mode=resize_mode, crops_coords=crops_coords
         )
 
