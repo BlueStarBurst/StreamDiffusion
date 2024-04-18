@@ -5,7 +5,7 @@ import numpy as np
 import PIL.Image
 import torch
 from diffusers import LCMScheduler, StableDiffusionPipeline 
-from diffusers.image_processor import VaeImageProcessor
+from diffusers.image_processor import VaeImageProcessor, PipelineImageInput
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_img2img import (
     retrieve_latents,
 )
@@ -569,7 +569,8 @@ class StreamDiffusion:
         mask: Optional[torch.Tensor] = None,
         num_images_per_prompt: Optional[int] = 1,
         latents: Optional[torch.FloatTensor] = None,
-        mask_image: Optional[torch.Tensor] = None,
+        mask_image: PipelineImageInput = None,
+        masked_image_latents: torch.FloatTensor = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
@@ -584,6 +585,7 @@ class StreamDiffusion:
         # set default values to the input parameters
         batch_size = 1
         crops_coords = None
+        # crops_coords = self.mask_processor.get_crop_region(mask_image, width, height, pad=padding_mask_crop)
         resize_mode = "default"
         device = self.pipe._execution_device
         self._guidance_scale = guidance_scale
