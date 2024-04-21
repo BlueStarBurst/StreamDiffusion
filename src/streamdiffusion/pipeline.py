@@ -388,6 +388,7 @@ class StreamDiffusion:
         num_channels_latents = self.vae.config.latent_channels
         num_channels_unet = self.unet.config.in_channels
         return_image_latents = num_channels_unet == 4
+        latent_model_input = x_t_latent_plus_uc
 
         if mask is not None:
             print(num_channels_latents)
@@ -412,12 +413,13 @@ class StreamDiffusion:
                     f"The unet {self.unet.__class__} should have either 4 or 9 input channels, not {self.unet.config.in_channels}."
                 )
             
-            latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
-            
-            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
-            
-            latent_model_input = torch.cat(
-                [latent_model_input, mask, mask_latent], dim=1)
+            if num_channels_unet == 9:
+                latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
+                
+                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
+                
+                latent_model_input = torch.cat(
+                    [latent_model_input, mask, mask_latent], dim=1)
 
             model_pred = self.unet(
                 latent_model_input,
