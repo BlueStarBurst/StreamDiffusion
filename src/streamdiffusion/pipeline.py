@@ -390,7 +390,8 @@ class StreamDiffusion:
         return_image_latents = num_channels_unet == 4
 
         if mask is not None:
-            
+            print(num_channels_latents)
+            print(num_channels_unet)
             # 8. Check that sizes of mask, masked image and latents match
             if num_channels_unet == 9:
                 # default case for runwayml/stable-diffusion-inpainting
