@@ -548,7 +548,7 @@ class StreamDiffusion:
                 # latents = (1 - init_mask) * init_latents_proper + init_mask * latents
                 
                 # duplicate a layer of the mask to be 3 dimensional (currently [2, 1, 64, 64]) to match the size of the latents
-                mask = mask.repeat(1, 4, 1, 1)
+                mask = mask[0].repeat(3, 4, 1, 1)
                 # expand mask dim 0 to 3 to match the size of the latents
                 mask = mask.unsqueeze(0)
                 
