@@ -391,6 +391,9 @@ class StreamDiffusion:
             
             latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
             
+            print("Look Here:")
+            print(latent_model_input.size(), mask.size(), mask_latent.size())
+            
             latent_model_input = torch.cat(
                 [latent_model_input, mask, mask_latent], dim=1)
 
