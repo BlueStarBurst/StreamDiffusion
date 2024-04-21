@@ -387,8 +387,9 @@ class StreamDiffusion:
         model_pred = None
 
         if mask is not None:
+            latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
             latent_model_input = torch.cat(
-                [x_t_latent_plus_uc, mask, mask_latent], dim=1)
+                [latent_model_input, mask, mask_latent], dim=1)
 
             model_pred = self.unet(
                 latent_model_input,
@@ -667,6 +668,7 @@ class StreamDiffusion:
         mask_condition = self.pipe.mask_processor.preprocess(
             mask_image, height=height, width=width, resize_mode=resize_mode, crops_coords=crops_coords
         )
+        mask_condition = mask_condition.to(dtype=torch.float32)
 
         # create mask_latent if mask is not None
         mask_latent = None
@@ -676,7 +678,7 @@ class StreamDiffusion:
             mask_latent = mask_latent * self.vae.config.scaling_factor
 
         init_image = self.image_processor.preprocess(x, height=height, width=width)
-        init_image = init_image.to(dtype=torch.float32)
+        init_image = init_image.to(dtype=torch.float32, device="cpu")
 
         if masked_image_latents is None:
             masked_image = init_image * (mask_condition < 0.5)
