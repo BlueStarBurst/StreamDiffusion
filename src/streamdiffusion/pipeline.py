@@ -420,6 +420,12 @@ class StreamDiffusion:
                 
                 latent_model_input = torch.cat(
                     [latent_model_input, mask, mask_latent], dim=1)
+            
+            # print("Look Here:")
+            # print(latent_model_input.size(), mask.size(), mask_latent.size())
+            
+            # latent_model_input = torch.cat(
+            #     [latent_model_input, mask, mask_latent], dim=1)
 
             model_pred = self.unet(
                 latent_model_input,
