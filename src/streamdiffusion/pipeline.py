@@ -4,8 +4,8 @@ from typing import List, Optional, Union, Any, Dict, Tuple, Literal
 import numpy as np
 import PIL.Image
 import torch
-from diffusers import LCMScheduler, StableDiffusionPipeline 
-from ...models import AsymmetricAutoencoderKL, AutoencoderKL
+from diffusers import LCMScheduler, StableDiffusionPipeline
+from diffusers import AsymmetricAutoencoderKL, AutoencoderKL
 from diffusers.image_processor import VaeImageProcessor, PipelineImageInput
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_img2img import (
     retrieve_latents,
@@ -23,7 +23,7 @@ class StreamDiffusion:
     def __init__(
         self,
         pipe: StableDiffusionPipeline,
-        vae: Union[AutoencoderKL, AsymmetricAutoencoderKL],
+        # vae: Union[AutoencoderKL, AsymmetricAutoencoderKL],
         t_index_list: List[int],
         torch_dtype: torch.dtype = torch.float16,
         width: int = 512,
@@ -75,8 +75,9 @@ class StreamDiffusion:
         self.prev_image_result = None
 
         self.pipe = pipe
-        
-        self.vae_scale_factor = 2 ** (len(self.vae.config.block_out_channels) - 1)
+
+        self.vae_scale_factor = 2 ** (
+            len(self.pipe.vae.config.block_out_channels) - 1)
         self.image_processor = VaeImageProcessor(pipe.vae_scale_factor)
         self.mask_processor = VaeImageProcessor(
             vae_scale_factor=pipe.vae_scale_factor, do_normalize=False, do_binarize=True, do_convert_grayscale=True
@@ -181,9 +182,11 @@ class StreamDiffusion:
         self.prompt_embeds = encoder_output[0].repeat(self.batch_size, 1, 1)
 
         if self.use_denoising_batch and self.cfg_type == "full":
-            uncond_prompt_embeds = encoder_output[1].repeat(self.batch_size, 1, 1)
+            uncond_prompt_embeds = encoder_output[1].repeat(
+                self.batch_size, 1, 1)
         elif self.cfg_type == "initialize":
-            uncond_prompt_embeds = encoder_output[1].repeat(self.frame_bff_size, 1, 1)
+            uncond_prompt_embeds = encoder_output[1].repeat(
+                self.frame_bff_size, 1, 1)
 
         if self.guidance_scale > 1.0 and (
             self.cfg_type == "initialize" or self.cfg_type == "full"
@@ -240,7 +243,8 @@ class StreamDiffusion:
         beta_prod_t_sqrt_list = []
         for timestep in self.sub_timesteps:
             alpha_prod_t_sqrt = self.scheduler.alphas_cumprod[timestep].sqrt()
-            beta_prod_t_sqrt = (1 - self.scheduler.alphas_cumprod[timestep]).sqrt()
+            beta_prod_t_sqrt = (
+                1 - self.scheduler.alphas_cumprod[timestep]).sqrt()
             alpha_prod_t_sqrt_list.append(alpha_prod_t_sqrt)
             beta_prod_t_sqrt_list.append(beta_prod_t_sqrt)
         alpha_prod_t_sqrt = (
@@ -271,7 +275,8 @@ class StreamDiffusion:
         # we do that before converting to dtype to avoid breaking in case we're using cpu_offload
         # and half precision
         mask = torch.nn.functional.interpolate(
-            mask, size=(height // self.vae_scale_factor, width // self.vae_scale_factor)
+            mask, size=(height // self.vae_scale_factor,
+                        width // self.vae_scale_factor)
         )
         mask = mask.to(device=device, dtype=dtype)
 
@@ -282,7 +287,8 @@ class StreamDiffusion:
             masked_image_latents = masked_image
         else:
             # encode the masked image to latents
-            masked_image_latents = self._encode_vae_image(masked_image, generator=generator)
+            masked_image_latents = self._encode_vae_image(
+                masked_image, generator=generator)
 
         # duplicate mask and masked_image_latents for each generation per prompt, using mps friendly method
         if mask.shape[0] < batch_size:
@@ -300,16 +306,19 @@ class StreamDiffusion:
                     f" to a total batch size of {batch_size}, but {masked_image_latents.shape[0]} images were passed."
                     " Make sure the number of images that you pass is divisible by the total requested batch size."
                 )
-            masked_image_latents = masked_image_latents.repeat(batch_size // masked_image_latents.shape[0], 1, 1, 1)
+            masked_image_latents = masked_image_latents.repeat(
+                batch_size // masked_image_latents.shape[0], 1, 1, 1)
 
         # Do classifier free guidance if needed
         mask = torch.cat([mask] * 2) if do_classifier_free_guidance else mask
         masked_image_latents = (
-            torch.cat([masked_image_latents] * 2) if do_classifier_free_guidance else masked_image_latents
+            torch.cat([masked_image_latents] *
+                      2) if do_classifier_free_guidance else masked_image_latents
         )
 
         # aligning device to prevent device errors when concating it with the latent model input
-        masked_image_latents = masked_image_latents.to(device=device, dtype=dtype)
+        masked_image_latents = masked_image_latents.to(
+            device=device, dtype=dtype)
         return mask, masked_image_latents
 
     @torch.no_grad()
@@ -348,7 +357,8 @@ class StreamDiffusion:
             denoised_batch = self.c_out * F_theta + self.c_skip * x_t_latent_batch
         else:
             F_theta = (
-                x_t_latent_batch - self.beta_prod_t_sqrt[idx] * model_pred_batch
+                x_t_latent_batch -
+                self.beta_prod_t_sqrt[idx] * model_pred_batch
             ) / self.alpha_prod_t_sqrt[idx]
             denoised_batch = (
                 self.c_out[idx] * F_theta + self.c_skip[idx] * x_t_latent_batch
@@ -365,19 +375,21 @@ class StreamDiffusion:
         mask_latent: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         if self.guidance_scale > 1.0 and (self.cfg_type == "initialize"):
-            x_t_latent_plus_uc = torch.concat([x_t_latent[0:1], x_t_latent], dim=0)
+            x_t_latent_plus_uc = torch.concat(
+                [x_t_latent[0:1], x_t_latent], dim=0)
             t_list = torch.concat([t_list[0:1], t_list], dim=0)
         elif self.guidance_scale > 1.0 and (self.cfg_type == "full"):
             x_t_latent_plus_uc = torch.concat([x_t_latent, x_t_latent], dim=0)
             t_list = torch.concat([t_list, t_list], dim=0)
         else:
             x_t_latent_plus_uc = x_t_latent
-            
+
         model_pred = None
-            
+
         if mask is not None:
-            latent_model_input = torch.cat([x_t_latent_plus_uc, mask, mask_latent], dim=1)
-            
+            latent_model_input = torch.cat(
+                [x_t_latent_plus_uc, mask, mask_latent], dim=1)
+
             model_pred = self.unet(
                 latent_model_input,
                 t_list,
@@ -414,10 +426,12 @@ class StreamDiffusion:
 
         # compute the previous noisy sample x_t -> x_t-1
         if self.use_denoising_batch:
-            denoised_batch = self.scheduler_step_batch(model_pred, x_t_latent, idx)
+            denoised_batch = self.scheduler_step_batch(
+                model_pred, x_t_latent, idx)
             if self.cfg_type == "self" or self.cfg_type == "initialize":
                 scaled_noise = self.beta_prod_t_sqrt * self.stock_noise
-                delta_x = self.scheduler_step_batch(model_pred, scaled_noise, idx)
+                delta_x = self.scheduler_step_batch(
+                    model_pred, scaled_noise, idx)
                 alpha_next = torch.concat(
                     [
                         self.alpha_prod_t_sqrt[1:],
@@ -441,7 +455,8 @@ class StreamDiffusion:
 
         else:
             # denoised_batch = self.scheduler.step(model_pred, t_list[0], x_t_latent).denoised
-            denoised_batch = self.scheduler_step_batch(model_pred, x_t_latent, idx)
+            denoised_batch = self.scheduler_step_batch(
+                model_pred, x_t_latent, idx)
 
         return denoised_batch, model_pred
 
@@ -450,7 +465,8 @@ class StreamDiffusion:
             device=self.device,
             dtype=self.vae.dtype,
         )
-        img_latent = retrieve_latents(self.vae.encode(image_tensors), self.generator)
+        img_latent = retrieve_latents(
+            self.vae.encode(image_tensors), self.generator)
         img_latent = img_latent * self.vae.config.scaling_factor
         x_t_latent = self.add_noise(img_latent, self.init_noise[0], 0)
         return x_t_latent
@@ -462,7 +478,7 @@ class StreamDiffusion:
         return output_latent
 
     def predict_x0_batch(
-        self, 
+        self,
         x_t_latent: torch.Tensor,
         mask: Optional[torch.Tensor] = None,
         mask_latent: Optional[torch.Tensor] = None,
@@ -476,7 +492,8 @@ class StreamDiffusion:
                 self.stock_noise = torch.cat(
                     (self.init_noise[0:1], self.stock_noise[:-1]), dim=0
                 )
-            x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list, mask=mask, mask_latent=mask_latent)
+            x_0_pred_batch, model_pred = self.unet_step(
+                x_t_latent, t_list, mask=mask, mask_latent=mask_latent)
 
             if self.denoising_steps_num > 1:
                 x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
@@ -515,7 +532,7 @@ class StreamDiffusion:
             x_0_pred_out = x_0_pred
 
         return x_0_pred_out
-    
+
     def preprocess_image(self, image: Union[str, Image.Image]) -> torch.Tensor:
         """
         Preprocesses the image.
@@ -531,23 +548,26 @@ class StreamDiffusion:
             The preprocessed image.
         """
         if isinstance(image, str):
-            image = Image.open(image).convert("RGB").resize((self.width, self.height))
+            image = Image.open(image).convert(
+                "RGB").resize((self.width, self.height))
         if isinstance(image, Image.Image):
             image = image.convert("RGB").resize((self.width, self.height))
 
         return self.image_processor.preprocess(
             image, self.height, self.width
         ).to(device=self.device, dtype=self.dtype)
-    
+
     def _encode_vae_image(self, image: torch.Tensor, generator: torch.Generator):
         if isinstance(generator, list):
             image_latents = [
-                retrieve_latents(self.vae.encode(image[i : i + 1]), generator=generator[i])
+                retrieve_latents(self.vae.encode(
+                    image[i: i + 1]), generator=generator[i])
                 for i in range(image.shape[0])
             ]
             image_latents = torch.cat(image_latents, dim=0)
         else:
-            image_latents = retrieve_latents(self.vae.encode(image), generator=generator)
+            image_latents = retrieve_latents(
+                self.vae.encode(image), generator=generator)
 
         image_latents = self.vae.config.scaling_factor * image_latents
 
@@ -557,14 +577,13 @@ class StreamDiffusion:
     def clip_skip(self):
         return self._clip_skip
 
-
     @property
     def do_classifier_free_guidance(self):
         return self._guidance_scale > 1 and self.unet.config.time_cond_proj_dim is None
 
     @torch.no_grad()
     def __call__(
-        self, 
+        self,
         x: Union[torch.Tensor, PIL.Image.Image, np.ndarray] = None,
         # image: PipelineImageInput = None,
         prompt: Union[str, List[str]] = None,
@@ -578,7 +597,8 @@ class StreamDiffusion:
         masked_image_latents: torch.FloatTensor = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
-        generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+        generator: Optional[Union[torch.Generator,
+                                  List[torch.Generator]]] = None,
         cross_attention_kwargs: Optional[Dict[str, Any]] = None,
         guidance_scale: float = 7.5,
         clip_skip: Optional[int] = None,
@@ -586,7 +606,7 @@ class StreamDiffusion:
         start = torch.cuda.Event(enable_timing=True)
         end = torch.cuda.Event(enable_timing=True)
         start.record()
-        
+
         # set default values to the input parameters
         batch_size = 1
         crops_coords = None
@@ -608,7 +628,8 @@ class StreamDiffusion:
 
         # encode input prompt
         text_encoder_lora_scale = (
-            cross_attention_kwargs.get("scale", None) if cross_attention_kwargs is not None else None
+            cross_attention_kwargs.get(
+                "scale", None) if cross_attention_kwargs is not None else None
         )
         prompt_embeds, negative_prompt_embeds = self.pipe.encode_prompt(
             prompt,
@@ -616,7 +637,7 @@ class StreamDiffusion:
             num_images_per_prompt,
             self.do_classifier_free_guidance,
             negative_prompt,
-            prompt_embeds= self.prompt_embeds,
+            prompt_embeds=self.prompt_embeds,
             negative_prompt_embeds=negative_prompt_embeds,
             lora_scale=text_encoder_lora_scale,
             clip_skip=self.clip_skip,
@@ -625,7 +646,6 @@ class StreamDiffusion:
         num_channels_latents = self.vae.config.latent_channels
         num_channels_unet = self.unet.config.in_channels
         return_image_latents = num_channels_unet == 4
-
 
         # Set regular latents
         # latents_outputs = self.prepare_latents(
@@ -651,14 +671,15 @@ class StreamDiffusion:
         # create mask_latent if mask is not None
         mask_latent = None
         if mask is not None:
-            mask_latent = retrieve_latents(self.vae.encode(mask), self.generator)
+            mask_latent = retrieve_latents(
+                self.vae.encode(mask), self.generator)
             mask_latent = mask_latent * self.vae.config.scaling_factor
-        
+
         if mask_latent is None:
-        #     masked_image = init_image * (mask_condition < 0.5)
-        # else:
+            #     masked_image = init_image * (mask_condition < 0.5)
+            # else:
             masked_image = masked_image_latents
-        
+
         mask, masked_image_latents = self.prepare_mask_latents(
             mask_condition,
             masked_image,
@@ -670,7 +691,7 @@ class StreamDiffusion:
             generator,
             self.do_classifier_free_guidance,
         )
-        
+
         if x is not None:
             x = self.image_processor.preprocess(x, self.height, self.width).to(
                 device=self.device, dtype=self.dtype
@@ -683,13 +704,14 @@ class StreamDiffusion:
             x_t_latent = self.encode_image(x)
         else:
             # TODO: check the dimension of x_t_latent
-            
+
             x_t_latent = torch.randn((1, 4, self.latent_height, self.latent_width)).to(
                 device=self.device, dtype=self.dtype
             )
-            
+
         if mask is not None:
-            x_0_pred_out = self.predict_x0_batch(x_t_latent, mask=mask, mask_latent=masked_image_latents)
+            x_0_pred_out = self.predict_x0_batch(
+                x_t_latent, mask=mask, mask_latent=masked_image_latents)
         else:
             x_0_pred_out = self.predict_x0_batch(x_t_latent)
         x_output = self.decode_image(x_0_pred_out).detach().clone()
