@@ -523,8 +523,7 @@ class StreamDiffusion:
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         # copy the x_t_latent to the buffer if the buffer is None
-        if self.x_t_latent_buffer is None:
-            self.x_t_latent_buffer = x_t_latent
+        self.x_t_latent_buffer = x_t_latent
         prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
