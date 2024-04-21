@@ -679,6 +679,11 @@ class StreamDiffusion:
             #     masked_image = init_image * (mask_condition < 0.5)
             # else:
             masked_image = masked_image_latents
+            
+        if height is None:
+            height = self.height
+        if width is None:
+            width = self.width
 
         mask, masked_image_latents = self.prepare_mask_latents(
             mask_condition,
