@@ -4,7 +4,7 @@ from typing import List, Optional, Union, Any, Dict, Tuple, Literal
 import numpy as np
 import PIL.Image
 import torch
-from diffusers import LCMScheduler, StableDiffusionPipeline
+from diffusers import LCMScheduler, StableDiffusionPipeline, StableDiffusionInpaintPipeline
 from diffusers import AsymmetricAutoencoderKL, AutoencoderKL
 from diffusers.image_processor import VaeImageProcessor, PipelineImageInput
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_img2img import (
@@ -22,7 +22,7 @@ from PIL import Image
 class StreamDiffusion:
     def __init__(
         self,
-        pipe: StableDiffusionPipeline,
+        pipe: StableDiffusionInpaintPipeline,
         # vae: Union[AutoencoderKL, AsymmetricAutoencoderKL],
         t_index_list: List[int],
         torch_dtype: torch.dtype = torch.float16,
@@ -675,9 +675,12 @@ class StreamDiffusion:
                 self.vae.encode(mask), self.generator)
             mask_latent = mask_latent * self.vae.config.scaling_factor
 
-        if mask_latent is None:
-            #     masked_image = init_image * (mask_condition < 0.5)
-            # else:
+        init_image = self.image_processor.preprocess(x, height=height, width=width)
+        init_image = init_image.to(dtype=torch.float32)
+
+        if masked_image_latents is None:
+            masked_image = init_image * (mask_condition < 0.5)
+        else:
             masked_image = masked_image_latents
             
         if height is None:
@@ -689,8 +692,8 @@ class StreamDiffusion:
             mask_condition,
             masked_image,
             batch_size * num_images_per_prompt,
-            height,
-            width,
+            self.height,
+            self.width,
             prompt_embeds.dtype,
             device,
             generator,
