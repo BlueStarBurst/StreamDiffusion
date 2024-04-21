@@ -414,7 +414,7 @@ class StreamDiffusion:
                 )
             
             
-            latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
+            # latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
             
             latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
             print(latent_model_input.size(), mask.size(), mask_latent.size())
