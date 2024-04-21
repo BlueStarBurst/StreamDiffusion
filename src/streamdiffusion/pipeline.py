@@ -388,6 +388,9 @@ class StreamDiffusion:
 
         if mask is not None:
             latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
+            
+            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
+            
             latent_model_input = torch.cat(
                 [latent_model_input, mask, mask_latent], dim=1)
 
