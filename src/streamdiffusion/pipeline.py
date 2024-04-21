@@ -547,8 +547,11 @@ class StreamDiffusion:
                     )
                 # latents = (1 - init_mask) * init_latents_proper + init_mask * latents
                 
-                # duplicate a layer of the mask to be 3 dimensional (currently [2, 1, 64, 64] -> [3, 4, 64, 64]) to match the latents
-                mask = torch.cat([mask] * 2) if self.do_classifier_free_guidance else mask
+                # duplicate a layer of the mask to be 3 dimensional (currently [2, 1, 64, 64]) to match the size of the latents
+                mask = mask.repeat(1, 4, 1, 1)
+                # expand mask dim 0 to 3 to match the size of the latents
+                mask = mask.unsqueeze(0)
+                
                 
                 print(mask.size(), prev_latent_batch.size())
                 self.x_t_latent_buffer = (1 - mask) * self.x_t_latent_buffer + mask * prev_latent_batch
