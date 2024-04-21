@@ -546,6 +546,8 @@ class StreamDiffusion:
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
                 # latents = (1 - init_mask) * init_latents_proper + init_mask * latents
+                mask = mask.unsqueeze(0)
+                print(mask.size(), prev_latent_batch.size())
                 self.x_t_latent_buffer = (1 - mask) * self.x_t_latent_buffer + mask * prev_latent_batch
             else:
                 x_0_pred_out = x_0_pred_batch
