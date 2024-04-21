@@ -414,9 +414,9 @@ class StreamDiffusion:
                 )
             
             
-            latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
+            # latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
             
-            # latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
+            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
             print(latent_model_input.size(), mask.size(), mask_latent.size())
                 
             if num_channels_unet == 9:
@@ -522,8 +522,7 @@ class StreamDiffusion:
         mask: Optional[torch.Tensor] = None,
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        # prev_latent_batch = self.x_t_latent_buffer
-        prev_latent_batch = x_t_latent
+        prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
             t_list = self.sub_timesteps_tensor
