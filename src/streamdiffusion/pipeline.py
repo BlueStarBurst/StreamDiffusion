@@ -560,7 +560,7 @@ class StreamDiffusion:
                 # expand mask dim 0 to 3 to match the size of the latents
                 
                 # remove the alpha channel from the x_t_latent [4,4,64,64] to [3,4,64,64]
-                test = x_0_pred_batch[-1][:3]
+                test = x_0_pred_batch[:3]
                 
                 print("here",mask.size(), prev_latent_batch.size(), test.size()) 
                 self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * test
