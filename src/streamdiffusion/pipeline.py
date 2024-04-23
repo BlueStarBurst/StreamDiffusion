@@ -561,7 +561,7 @@ class StreamDiffusion:
                 
                 
                 print(mask.size(), prev_latent_batch.size())
-                self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * prev_latent_batch
+                self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * x_t_latent
             else:
                 x_0_pred_out = x_0_pred_batch
                 self.x_t_latent_buffer = None
@@ -591,6 +591,7 @@ class StreamDiffusion:
                 x_t_latent = (1 - mask) * x_t_latent + mask * prev_latent_batch
                 self.x_t_latent_buffer = x_t_latent
             x_0_pred_out = x_0_pred
+
 
         return x_0_pred_out
 
