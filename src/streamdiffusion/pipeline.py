@@ -560,7 +560,7 @@ class StreamDiffusion:
                 # expand mask dim 0 to 3 to match the size of the latents
                 
                 
-                print(mask.size(), prev_latent_batch.size(), x_t_latent.size()) 
+                print("here",mask.size(), prev_latent_batch.size(), x_t_latent.size()) 
                 self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * x_t_latent
             else:
                 x_0_pred_out = x_0_pred_batch
