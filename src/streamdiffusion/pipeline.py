@@ -524,9 +524,8 @@ class StreamDiffusion:
     ) -> torch.Tensor:
         
         prev_latent_batch = x_t_latent
-        if self.x_t_latent_buffer is not None:
-            prev_latent_batch = self.x_t_latent_buffer
-        
+        # if self.x_t_latent_buffer is not None:
+        #     prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
             t_list = self.sub_timesteps_tensor
