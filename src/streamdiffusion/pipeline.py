@@ -391,10 +391,10 @@ class StreamDiffusion:
         latent_model_input = x_t_latent_plus_uc
 
         if mask is not None:
-            print(num_channels_latents)
-            print(num_channels_unet)
-            print(mask.shape)
-            print(mask_latent.shape)
+            # print(num_channels_latents)
+            # print(num_channels_unet)
+            # print(mask.shape)
+            # print(mask_latent.shape)
             # 8. Check that sizes of mask, masked image and latents match
             if num_channels_unet == 9:
                 # default case for runwayml/stable-diffusion-inpainting
@@ -417,7 +417,7 @@ class StreamDiffusion:
             # latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
             
             latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
-            print(latent_model_input.size(), mask.size(), mask_latent.size())
+            # print(latent_model_input.size(), mask.size(), mask_latent.size())
                 
             if num_channels_unet == 9:
                 latent_model_input = torch.cat(
@@ -553,17 +553,17 @@ class StreamDiffusion:
                 
                 # duplicate a layer of the mask to be 3 dimensional (currently [2, 1, 64, 64]) to match the size of the latents
                 mask = mask[0].repeat(3, 4, 1, 1)
-                print(mask[0][0][0][0])
-                print(mask[1][0][0][0])
-                print(prev_latent_batch[0][0][0][0])
-                print(prev_latent_batch[1][0][0][0])
+                # print(mask[0][0][0][0])
+                # print(mask[1][0][0][0])
+                # print(prev_latent_batch[0][0][0][0])
+                # print(prev_latent_batch[1][0][0][0])
                 
                 # expand mask dim 0 to 3 to match the size of the latents
                 
                 # remove the alpha channel from the x_t_latent [4,4,64,64] to [3,4,64,64]
                 test = x_t_latent[:3]
                 
-                print("here",mask.size(), prev_latent_batch.size(), test.size()) 
+                # print("here",mask.size(), prev_latent_batch.size(), test.size()) 
                 self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * original
             else:
                 x_0_pred_out = x_0_pred_batch
