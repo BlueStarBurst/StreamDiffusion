@@ -416,7 +416,7 @@ class StreamDiffusion:
             
             # latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
             
-            # latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
+            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
             print(latent_model_input.size(), mask.size(), mask_latent.size())
                 
             if num_channels_unet == 9:
@@ -525,8 +525,8 @@ class StreamDiffusion:
         # copy the x_t_latent to the buffer if the buffer is None
         # self.x_t_latent_buffer = x_t_latent.clone()
         
-        if self.x_t_latent_buffer is None:
-            self.x_t_latent_buffer = x_t_latent.clone()
+        # if self.x_t_latent_buffer is None:
+        #     self.x_t_latent_buffer = x_t_latent.clone()
         
         prev_latent_batch = self.x_t_latent_buffer
 
@@ -568,7 +568,7 @@ class StreamDiffusion:
             else:
                 x_0_pred_out = x_0_pred_batch
                 
-                self.x_t_latent_buffer = None
+                # self.x_t_latent_buffer = None
         else:
             self.init_noise = x_t_latent
             self.x_t_latent_buffer = x_t_latent
