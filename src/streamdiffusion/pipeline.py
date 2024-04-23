@@ -789,6 +789,10 @@ class StreamDiffusion:
         else:
             x_0_pred_out = self.predict_x0_batch(x_t_latent)
         x_output = self.decode_image(x_0_pred_out).detach().clone()
+        
+        # use the mask and the input image to create the final image
+        if mask is not None:
+            x_output = (1 - mask) * init_image + mask * x_output
 
         self.prev_image_result = x_output
         end.record()
