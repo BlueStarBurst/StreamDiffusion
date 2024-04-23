@@ -523,6 +523,7 @@ class StreamDiffusion:
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         
+        original = x_t_latent.clone()
         prev_latent_batch = x_t_latent
         if self.x_t_latent_buffer is not None:
             prev_latent_batch = self.x_t_latent_buffer
@@ -563,7 +564,7 @@ class StreamDiffusion:
                 test = x_t_latent[:3]
                 
                 print("here",mask.size(), prev_latent_batch.size(), test.size()) 
-                self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * test
+                self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * original
             else:
                 x_0_pred_out = x_0_pred_batch
                 # self.x_t_latent_buffer = None
@@ -590,7 +591,7 @@ class StreamDiffusion:
                         x_t_latent = self.alpha_prod_t_sqrt[idx + 1] * x_0_pred
                         
                 # latents = (1 - init_mask) * init_latents_proper + init_mask * latents
-                x_t_latent = (1 - mask) * x_t_latent + mask * prev_latent_batch
+                x_t_latent = (1 - mask) * original + mask * prev_latent_batch
                 self.x_t_latent_buffer = x_t_latent
             x_0_pred_out = x_0_pred
 
