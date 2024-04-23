@@ -524,6 +524,7 @@ class StreamDiffusion:
     ) -> torch.Tensor:
         # copy the x_t_latent to the buffer if the buffer is None
         self.x_t_latent_buffer = x_t_latent.clone()
+        
         prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
@@ -564,7 +565,7 @@ class StreamDiffusion:
             else:
                 x_0_pred_out = x_0_pred_batch
                 
-                self.x_t_latent_buffer = None
+                # self.x_t_latent_buffer = None
         else:
             self.init_noise = x_t_latent
             self.x_t_latent_buffer = x_t_latent
