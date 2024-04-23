@@ -790,16 +790,16 @@ class StreamDiffusion:
             x_0_pred_out = self.predict_x0_batch(x_t_latent)
         x_output = self.decode_image(x_0_pred_out).detach().clone()
         
-        # use the mask and the input image to create the final image
-        if mask is not None:
-            x_output = (1 - mask) * init_image + mask * x_output
+        # # use the mask and the input image to create the final image
+        # if mask is not None:
+        #     x_output = (1 - mask) * init_image + mask * x_output
 
         self.prev_image_result = x_output
         end.record()
         torch.cuda.synchronize()
         inference_time = start.elapsed_time(end) / 1000
         self.inference_time_ema = 0.9 * self.inference_time_ema + 0.1 * inference_time
-        return x_output
+        return x_output, init_image
 
     @torch.no_grad()
     def txt2img(self, batch_size: int = 1) -> torch.Tensor:
