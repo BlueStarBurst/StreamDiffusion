@@ -562,7 +562,7 @@ class StreamDiffusion:
             else:
                 x_0_pred_out = x_0_pred_batch
                 
-                self.x_t_latent_buffer = None
+                # self.x_t_latent_buffer = None
         else:
             self.init_noise = x_t_latent
             self.x_t_latent_buffer = x_t_latent
