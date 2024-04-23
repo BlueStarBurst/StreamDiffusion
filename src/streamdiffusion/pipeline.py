@@ -526,7 +526,7 @@ class StreamDiffusion:
         # self.x_t_latent_buffer = x_t_latent.clone()
         
         if self.x_t_latent_buffer is None:
-            self.x_t_latent_buffer = x_t_latent
+            self.x_t_latent_buffer = x_t_latent.clone()
         
         prev_latent_batch = self.x_t_latent_buffer
 
