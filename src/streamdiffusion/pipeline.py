@@ -522,16 +522,13 @@ class StreamDiffusion:
         mask: Optional[torch.Tensor] = None,
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        
-        if self.x_t_latent_buffer is None:
-            self.x_t_latent_buffer = x_t_latent
-        
+        # copy the x_t_latent to the buffer if the buffer is None
+        self.x_t_latent_buffer = x_t_latent.clone()
         prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
             t_list = self.sub_timesteps_tensor
             if self.denoising_steps_num > 1:
-                print(prev_latent_batch.size(), x_t_latent.size())
                 x_t_latent = torch.cat((x_t_latent, prev_latent_batch), dim=0)
                 self.stock_noise = torch.cat(
                     (self.init_noise[0:1], self.stock_noise[:-1]), dim=0
