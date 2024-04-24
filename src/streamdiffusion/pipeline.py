@@ -537,17 +537,7 @@ class StreamDiffusion:
                 )
             x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
             
-            if mask is not None:
-                # overlay the original masked image with the generated image
-                
-                print("mask shape: ", mask.shape)
-                print("mask_latent shape: ", mask_latent.shape)
-                print("x_0_pred_batch shape: ", x_0_pred_batch.shape)
-                print("original_x_t_latent shape: ", original_x_t_latent.shape)
-                print("x_t_latent shape: ", x_t_latent.shape)
-                print("prev_latent_batch shape: ", prev_latent_batch.shape)
-                
-                x_0_pred_batch = (1 - new_mask) * x_t_latent + (new_mask) * x_0_pred_batch
+            print("repeating1")
 
             if self.denoising_steps_num > 1:
                 x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
@@ -560,11 +550,17 @@ class StreamDiffusion:
                     self.x_t_latent_buffer = (
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
+                
+                # if mask is not None:
+                #     print
+                    # overlay the original latent with the new latent
+                    # x_0_pred_out = x_0_pred_out * (1 - new_mask) + original_x_t_latent * new_mask
             else:
                 x_0_pred_out = x_0_pred_batch
                 self.x_t_latent_buffer = None
         else:
             self.init_noise = x_t_latent
+            print("repeating2")
             for idx, t in enumerate(self.sub_timesteps_tensor):
                 t = t.view(
                     1,
