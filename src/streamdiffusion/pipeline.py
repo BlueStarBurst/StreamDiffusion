@@ -537,6 +537,9 @@ class StreamDiffusion:
                 )
             x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
             
+            # overlay the original latent with the new latent using the mask
+            x_0_pred_batch = x_0_pred_batch * (1 - new_mask) + original_x_t_latent * new_mask
+            
             print("repeating1")
 
             if self.denoising_steps_num > 1:
