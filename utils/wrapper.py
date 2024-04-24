@@ -6,7 +6,7 @@ from typing import List, Literal, Optional, Union, Dict
 
 import numpy as np
 import torch
-from diffusers import AutoencoderTiny, StableDiffusionPipeline
+from diffusers import AutoencoderTiny, StableDiffusionPipeline, StableDiffusionInpaintPipeline
 from PIL import Image
 
 from streamdiffusion import StreamDiffusion
@@ -47,6 +47,7 @@ class StreamDiffusionWrapper:
         seed: int = 2,
         use_safety_checker: bool = False,
         engine_dir: Optional[Union[str, Path]] = "engines",
+        inpaint: bool = False,
     ):
         """
         Initializes the StreamDiffusionWrapper.
@@ -163,6 +164,7 @@ class StreamDiffusionWrapper:
             cfg_type=cfg_type,
             seed=seed,
             engine_dir=engine_dir,
+            inpaint=inpaint,
         )
 
         if device_ids is not None:
@@ -363,6 +365,7 @@ class StreamDiffusionWrapper:
         cfg_type: Literal["none", "full", "self", "initialize"] = "self",
         seed: int = 2,
         engine_dir: Optional[Union[str, Path]] = "engines",
+        inpaint: bool = False,
     ) -> StreamDiffusion:
         """
         Loads the model.
@@ -415,14 +418,24 @@ class StreamDiffusionWrapper:
         """
 
         try:  # Load from local directory
-            pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_pretrained(
-                model_id_or_path,
-            ).to(device=self.device, dtype=self.dtype)
+            if inpaint:
+                pipe: StableDiffusionInpaintPipeline = StableDiffusionInpaintPipeline.from_pretrained(
+                    model_id_or_path,
+                ).to(device=self.device, dtype=self.dtype)
+            else:
+                pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_pretrained(
+                    model_id_or_path,
+                ).to(device=self.device, dtype=self.dtype)
 
         except ValueError:  # Load from huggingface
-            pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_single_file(
-                model_id_or_path,
-            ).to(device=self.device, dtype=self.dtype)
+            if inpaint:
+                pipe: StableDiffusionInpaintPipeline = StableDiffusionInpaintPipeline.from_single_file(
+                    model_id_or_path,
+                ).to(device=self.device, dtype=self.dtype)
+            else:
+                pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_single_file(
+                    model_id_or_path,
+                ).to(device=self.device, dtype=self.dtype)
         except Exception:  # No model found
             traceback.print_exc()
             print("Model load has failed. Doesn't exist.")
