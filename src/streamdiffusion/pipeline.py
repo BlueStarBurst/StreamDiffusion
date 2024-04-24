@@ -539,9 +539,9 @@ class StreamDiffusion:
             
             if mask is not None:
                 
-                for i in range(0, len(x_0_pred_batch)-1):
+                for i in range(0, len(x_0_pred_batch)):
                     # new_mask = mask[i].repeat(3, 1, 1, 1)
-                    print(x_0_pred_batch[i].size(), mask[i].size(), new_mask.size(), original_x_t_latent.size())
+                    print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
                     # overlay the original latent with the new latent using the mask
                     x_0_pred_batch[i] = x_0_pred_batch[i] * (1 - new_mask) + original_x_t_latent[0] * new_mask
             
