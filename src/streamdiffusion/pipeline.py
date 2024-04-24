@@ -562,11 +562,14 @@ class StreamDiffusion:
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
                 
+                print("denoising")
+                
                 # if mask is not None:
                 #     print
                     # overlay the original latent with the new latent
                     # x_0_pred_out = x_0_pred_out * (1 - new_mask) + original_x_t_latent * new_mask
             else:
+                print("done")
                 x_0_pred_out = x_0_pred_batch
                 self.x_t_latent_buffer = None
         else:
