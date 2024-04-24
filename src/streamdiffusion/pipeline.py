@@ -582,6 +582,12 @@ class StreamDiffusion:
                     self.frame_bff_size,
                 )
                 x_0_pred, model_pred = self.unet_step(x_t_latent, t, idx)
+                
+                if mask is not None:
+                    for i in range(0, len(x_0_pred)):
+                        # overlay the original latent with the new latent using the mask
+                        x_0_pred[i] = x_0_pred[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred[i] * (1-new_mask)/2)
+                
                 if idx < len(self.sub_timesteps_tensor) - 1:
                     if self.do_add_noise:
                         x_t_latent = self.alpha_prod_t_sqrt[
