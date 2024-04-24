@@ -543,9 +543,10 @@ class StreamDiffusion:
                 print("mask_latent shape: ", mask_latent.shape)
                 print("x_0_pred_batch shape: ", x_0_pred_batch.shape)
                 print("original_x_t_latent shape: ", original_x_t_latent.shape)
+                print("x_t_latent shape: ", x_t_latent.shape)
                 print("prev_latent_batch shape: ", prev_latent_batch.shape)
                 
-                x_0_pred_batch = (1 - mask_latent) * original_x_t_latent + (mask_latent) * x_0_pred_batch
+                x_0_pred_batch = (1 - mask_latent) * x_t_latent + (mask_latent) * x_0_pred_batch
 
             if self.denoising_steps_num > 1:
                 x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
