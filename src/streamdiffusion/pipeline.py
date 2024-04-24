@@ -523,7 +523,7 @@ class StreamDiffusion:
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         
-        original_x_t_latent = x_t_latent.repeat(2, 1, 1, 1)
+        original_x_t_latent = x_t_latent
         new_mask = mask[0].repeat(3, 1, 1, 1)
         
         prev_latent_batch = self.x_t_latent_buffer
