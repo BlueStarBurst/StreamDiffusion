@@ -538,6 +538,13 @@ class StreamDiffusion:
             
             if mask is not None:
                 # overlay the original masked image with the generated image
+                
+                print("mask shape: ", mask.shape)
+                print("mask_latent shape: ", mask_latent.shape)
+                print("x_0_pred_batch shape: ", x_0_pred_batch.shape)
+                print("original_x_t_latent shape: ", original_x_t_latent.shape)
+                print("prev_latent_batch shape: ", prev_latent_batch.shape)
+                
                 x_0_pred_batch = (1 - mask) * mask_latent + (mask) * x_0_pred_batch
 
             if self.denoising_steps_num > 1:
