@@ -525,6 +525,7 @@ class StreamDiffusion:
         
         original = x_t_latent.clone()
         prev_latent_batch = x_t_latent
+        save_good = original
         if self.x_t_latent_buffer is not None:
             prev_latent_batch = self.x_t_latent_buffer
 
@@ -550,6 +551,7 @@ class StreamDiffusion:
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
                 # latents = (1 - init_mask) * init_latents_proper + init_mask * latents
+                save_good = x_0_pred_out
                 
                 # duplicate a layer of the mask to be 3 dimensional (currently [2, 1, 64, 64]) to match the size of the latents
                 mask = mask[0].repeat(3, 4, 1, 1)
@@ -564,7 +566,7 @@ class StreamDiffusion:
                 test = x_t_latent[:3]
                 
                 # print("here",mask.size(), prev_latent_batch.size(), test.size()) 
-                self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * original
+                self.x_t_latent_buffer = (mask) * self.x_t_latent_buffer + (1 - mask) * save_good
             else:
                 x_0_pred_out = x_0_pred_batch
                 # self.x_t_latent_buffer = None
