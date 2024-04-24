@@ -412,20 +412,20 @@ class StreamDiffusion:
                 raise ValueError(
                     f"The unet {self.unet.__class__} should have either 4 or 9 input channels, not {self.unet.config.in_channels}."
                 )
-            
-            
+
             # latent_model_input = torch.cat([x_t_latent_plus_uc] * 2) if self.do_classifier_free_guidance else x_t_latent_plus_uc
-            
-            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t_list)
+
+            latent_model_input = self.scheduler.scale_model_input(
+                latent_model_input, t_list)
             # print(latent_model_input.size(), mask.size(), mask_latent.size())
-                
+
             if num_channels_unet == 9:
                 latent_model_input = torch.cat(
                     [latent_model_input, mask, mask_latent], dim=1)
-            
+
             # print("Look Here:")
             # print(latent_model_input.size(), mask.size(), mask_latent.size())
-            
+
             # latent_model_input = torch.cat(
             #     [latent_model_input, mask, mask_latent], dim=1)
 
@@ -522,12 +522,7 @@ class StreamDiffusion:
         mask: Optional[torch.Tensor] = None,
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        
-        original = x_t_latent.clone()
-        prev_latent_batch = x_t_latent
-        save_good = original
-        if self.x_t_latent_buffer is not None:
-            prev_latent_batch = self.x_t_latent_buffer
+        prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
             t_list = self.sub_timesteps_tensor
@@ -536,8 +531,7 @@ class StreamDiffusion:
                 self.stock_noise = torch.cat(
                     (self.init_noise[0:1], self.stock_noise[:-1]), dim=0
                 )
-            x_0_pred_batch, model_pred = self.unet_step(
-                x_t_latent, t_list, mask=mask, mask_latent=mask_latent)
+            x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
 
             if self.denoising_steps_num > 1:
                 x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
@@ -550,37 +544,18 @@ class StreamDiffusion:
                     self.x_t_latent_buffer = (
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
-                # latents = (1 - init_mask) * init_latents_proper + init_mask * latents
-                save_good = x_0_pred_out
-                
-                # duplicate a layer of the mask to be 3 dimensional (currently [2, 1, 64, 64]) to match the size of the latents
-                mask = mask[0].repeat(3, 4, 1, 1)
-                # print(mask[0][0][0][0])
-                # print(mask[1][0][0][0])
-                # print(prev_latent_batch[0][0][0][0])
-                # print(prev_latent_batch[1][0][0][0])
-                
-                # expand mask dim 0 to 3 to match the size of the latents
-                
-                # remove the alpha channel from the x_t_latent [4,4,64,64] to [3,4,64,64]
-                test = x_t_latent[:3]
-                
-                # print("here",mask.size(), prev_latent_batch.size(), test.size()) 
-                # self.x_t_latent_buffer = (mask) * (x_0_pred_out) + (1 - mask) * original
-                self.x_t_latent_buffer = (mask) * (self.x_t_latent_buffer) + (1 - mask) * original
             else:
                 x_0_pred_out = x_0_pred_batch
                 self.x_t_latent_buffer = None
         else:
             self.init_noise = x_t_latent
-            self.x_t_latent_buffer = x_t_latent
             for idx, t in enumerate(self.sub_timesteps_tensor):
                 t = t.view(
                     1,
                 ).repeat(
                     self.frame_bff_size,
                 )
-                x_0_pred, model_pred = self.unet_step(x_t_latent, t, idx, mask, mask_latent)
+                x_0_pred, model_pred = self.unet_step(x_t_latent, t, idx)
                 if idx < len(self.sub_timesteps_tensor) - 1:
                     if self.do_add_noise:
                         x_t_latent = self.alpha_prod_t_sqrt[
@@ -592,13 +567,7 @@ class StreamDiffusion:
                         )
                     else:
                         x_t_latent = self.alpha_prod_t_sqrt[idx + 1] * x_0_pred
-                        
-                # latents = (1 - init_mask) * init_latents_proper + init_mask * latents
-                # x_t_latent = (1 - mask) * original + mask * prev_latent_batch
-                x_t_latent = (1 - mask) * original + mask * x_0_pred
-                self.x_t_latent_buffer = x_t_latent
             x_0_pred_out = x_0_pred
-
 
         return x_0_pred_out
 
@@ -745,14 +714,15 @@ class StreamDiffusion:
                 self.vae.encode(mask), self.generator)
             mask_latent = mask_latent * self.vae.config.scaling_factor
 
-        init_image = self.image_processor.preprocess(x, height=height, width=width)
+        init_image = self.image_processor.preprocess(
+            x, height=height, width=width)
         init_image = init_image.to(dtype=torch.float32, device="cpu")
 
         if masked_image_latents is None:
             masked_image = init_image * (mask_condition < 0.5)
         else:
             masked_image = masked_image_latents
-            
+
         if height is None:
             height = self.height
         if width is None:
@@ -793,7 +763,7 @@ class StreamDiffusion:
         else:
             x_0_pred_out = self.predict_x0_batch(x_t_latent)
         x_output = self.decode_image(x_0_pred_out).detach().clone()
-        
+
         # # use the mask and the input image to create the final image
         # if mask is not None:
         #     x_output = (1 - mask) * init_image + mask * x_output
