@@ -522,6 +522,9 @@ class StreamDiffusion:
         mask: Optional[torch.Tensor] = None,
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
+        
+        original_x_t_latent = x_t_latent
+        
         prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
@@ -532,6 +535,10 @@ class StreamDiffusion:
                     (self.init_noise[0:1], self.stock_noise[:-1]), dim=0
                 )
             x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
+            
+            if mask is not None:
+                # overlay the original masked image with the generated image
+                x_0_pred_batch = (1 - mask) * mask_latent + (mask) * x_0_pred_batch
 
             if self.denoising_steps_num > 1:
                 x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
