@@ -523,7 +523,7 @@ class StreamDiffusion:
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         
-        original_x_t_latent = x_t_latent
+        original_x_t_latent = x_t_latent.repeat(2, 1, 1, 1)
         
         prev_latent_batch = self.x_t_latent_buffer
 
@@ -545,7 +545,7 @@ class StreamDiffusion:
                 print("original_x_t_latent shape: ", original_x_t_latent.shape)
                 print("prev_latent_batch shape: ", prev_latent_batch.shape)
                 
-                x_0_pred_batch = (1 - mask) * original_x_t_latent + (mask) * x_0_pred_batch
+                x_0_pred_batch = (1 - mask_latent) * original_x_t_latent + (mask_latent) * x_0_pred_batch
 
             if self.denoising_steps_num > 1:
                 x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
