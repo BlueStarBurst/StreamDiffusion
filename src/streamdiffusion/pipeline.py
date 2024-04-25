@@ -469,7 +469,7 @@ class StreamDiffusion:
                 model_pred, x_t_latent, idx)
             if self.cfg_type == "self" or self.cfg_type == "initialize":
                 scaled_noise = self.beta_prod_t_sqrt * self.stock_noise
-                for i in range(10):
+                for i in range(500):
                     
                     delta_x = self.scheduler_step_batch(
                         model_pred, scaled_noise, idx)
