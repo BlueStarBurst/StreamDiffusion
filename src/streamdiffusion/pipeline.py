@@ -469,30 +469,30 @@ class StreamDiffusion:
                 model_pred, x_t_latent, idx)
             if self.cfg_type == "self" or self.cfg_type == "initialize":
                 scaled_noise = self.beta_prod_t_sqrt * self.stock_noise
-
-                for i in range(10):
-                    delta_x = self.scheduler_step_batch(
-                        model_pred, scaled_noise, idx)
-                    alpha_next = torch.concat(
-                        [
-                            self.alpha_prod_t_sqrt[1:],
-                            torch.ones_like(self.alpha_prod_t_sqrt[0:1]),
-                        ],
-                        dim=0,
-                    )
-                    delta_x = alpha_next * delta_x
-                    beta_next = torch.concat(
-                        [
-                            self.beta_prod_t_sqrt[1:],
-                            torch.ones_like(self.beta_prod_t_sqrt[0:1]),
-                        ],
-                        dim=0,
-                    )
-                    delta_x = delta_x / beta_next
-                    init_noise = torch.concat(
-                        [self.init_noise[1:], self.init_noise[0:1]], dim=0
-                    )
+                
+                delta_x = self.scheduler_step_batch(
+                    model_pred, scaled_noise, idx)
+                alpha_next = torch.concat(
+                    [
+                        self.alpha_prod_t_sqrt[1:],
+                        torch.ones_like(self.alpha_prod_t_sqrt[0:1]),
+                    ],
+                    dim=0,
+                )
+                delta_x = alpha_next * delta_x
+                beta_next = torch.concat(
+                    [
+                        self.beta_prod_t_sqrt[1:],
+                        torch.ones_like(self.beta_prod_t_sqrt[0:1]),
+                    ],
+                    dim=0,
+                )
+                delta_x = delta_x / beta_next
+                init_noise = torch.concat(
+                    [self.init_noise[1:], self.init_noise[0:1]], dim=0
+                )
                 self.stock_noise = init_noise + delta_x
+                
 
         else:
             # denoised_batch = self.scheduler.step(model_pred, t_list[0], x_t_latent).denoised
@@ -548,7 +548,7 @@ class StreamDiffusion:
                     print(new_mask[0][32][32])
                     
                     # overlay the original latent with the new latent using the mask
-                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
+                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask)
             
             print("repeating1")
 
