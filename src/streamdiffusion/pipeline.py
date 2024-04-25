@@ -539,7 +539,7 @@ class StreamDiffusion:
             
             if mask is not None:
                 
-                for i in range(0, len(x_0_pred_batch)):
+                for i in range(0, self.denoising_steps_num):
                     # new_mask = mask[i].repeat(3, 1, 1, 1)
                     print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
                     
