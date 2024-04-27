@@ -768,9 +768,9 @@ class StreamDiffusion:
                 self.vae.encode(mask), self.generator)
             mask_latent = mask_latent * self.vae.config.scaling_factor
 
-        init_image = self.image_processor.preprocess(
-            x, height=height, width=width)
-        init_image = init_image.to(dtype=torch.float32, device="cpu")
+        # init_image = self.image_processor.preprocess(
+        #     x, height=height, width=width)
+        init_image = x.to(dtype=torch.float32, device="cpu")
 
         if masked_image_latents is None:
             masked_image = init_image * (mask_condition < 0.5)
@@ -793,30 +793,29 @@ class StreamDiffusion:
             generator,
             self.do_classifier_free_guidance,
         )
-
-        # if x is not None:
-        #     x = self.image_processor.preprocess(x, self.height, self.width).to(
-        #         device=self.device, dtype=self.dtype
-        #     )
-        #     if self.similar_image_filter:
-        #         x = self.similar_filter(x)
-        #         if x is None:
-        #             time.sleep(self.inference_time_ema)
-        #             return self.prev_image_result
-        #     x_t_latent = self.encode_image(x)
-        # else:
-        #     # TODO: check the dimension of x_t_latent
-
-        #     x_t_latent = torch.randn((1, 4, self.latent_height, self.latent_width)).to(
-        #         device=self.device, dtype=self.dtype
-        #     )
-
+        
         new_mask = mask[0].repeat(4, 1, 1)
 
-        x_t_latent_orig = self.encode_no_noise_image(x)
-        x_t_latent = self.encode_image(x)
+        if x is not None:
+            x = self.image_processor.preprocess(x, self.height, self.width).to(
+                device=self.device, dtype=self.dtype
+            )
+            if self.similar_image_filter:
+                x = self.similar_filter(x)
+                if x is None:
+                    time.sleep(self.inference_time_ema)
+                    return self.prev_image_result
+            x_t_latent = self.encode_image(x)
+            if mask is not None:
+                x_t_latent_orig = self.encode_no_noise_image(x)
+                x_t_latent = x_t_latent * new_mask + x_t_latent_orig * (1-new_mask)
+        else:
+            # TODO: check the dimension of x_t_latent
+
+            x_t_latent = torch.randn((1, 4, self.latent_height, self.latent_width)).to(
+                device=self.device, dtype=self.dtype
+            )
         
-        x_t_latent = x_t_latent * new_mask + x_t_latent_orig * (1-new_mask)
 
         if mask is not None:
             x_0_pred_out = self.predict_x0_batch(
