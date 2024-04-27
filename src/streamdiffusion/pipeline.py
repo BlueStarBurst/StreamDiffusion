@@ -510,6 +510,16 @@ class StreamDiffusion:
         img_latent = img_latent * self.vae.config.scaling_factor
         x_t_latent = self.add_noise(img_latent, self.init_noise[0], 0)
         return x_t_latent
+    
+    def encode_no_noise_image(self, image_tensors: torch.Tensor) -> torch.Tensor:
+        image_tensors = image_tensors.to(
+            device=self.device,
+            dtype=self.vae.dtype,
+        )
+        img_latent = retrieve_latents(
+            self.vae.encode(image_tensors), self.generator)
+        img_latent = img_latent * self.vae.config.scaling_factor
+        return img_latent
 
     def decode_image(self, x_0_pred_out: torch.Tensor) -> torch.Tensor:
         output_latent = self.vae.decode(
@@ -529,7 +539,8 @@ class StreamDiffusion:
 
         prev_latent_batch = self.x_t_latent_buffer
         for i in range(0, len(prev_latent_batch)):
-            prev_latent_batch[i] = prev_latent_batch[i] * (new_mask) + original_x_t_latent[0] * (1-new_mask)
+            prev_latent_batch[i] = prev_latent_batch[i] * \
+                (new_mask) + original_x_t_latent[0] * (1-new_mask)
 
         if self.use_denoising_batch:
             t_list = self.sub_timesteps_tensor
@@ -551,7 +562,8 @@ class StreamDiffusion:
 
                     # overlay the original latent with the new latent using the mask
                     # x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
-                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask))
+                    x_0_pred_batch[i] = x_0_pred_batch[i] * \
+                        (new_mask) + (original_x_t_latent[0] * (1-new_mask))
 
             print("repeating1")
 
@@ -567,7 +579,8 @@ class StreamDiffusion:
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
 
-                self.x_t_latent_buffer = self.x_t_latent_buffer * new_mask + prev_latent_batch * (1-new_mask)
+                self.x_t_latent_buffer = self.x_t_latent_buffer * \
+                    new_mask + prev_latent_batch * (1-new_mask)
 
                 print("denoising")
 
@@ -798,12 +811,12 @@ class StreamDiffusion:
         #     x_t_latent = torch.randn((1, 4, self.latent_height, self.latent_width)).to(
         #         device=self.device, dtype=self.dtype
         #     )
-            
-        x_t_latent = self.encode_image(x)
+
+        x_t_latent = self.encode_no_noise_image(x)
 
         if mask is not None:
-                x_0_pred_out = self.predict_x0_batch(
-                    x_t_latent, mask=mask, mask_latent=masked_image_latents)
+            x_0_pred_out = self.predict_x0_batch(
+                x_t_latent, mask=mask, mask_latent=masked_image_latents)
         else:
             x_0_pred_out = self.predict_x0_batch(x_t_latent)
         x_output = self.decode_image(x_0_pred_out).detach().clone()
