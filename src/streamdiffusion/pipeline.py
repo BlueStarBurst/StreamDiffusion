@@ -147,6 +147,7 @@ class StreamDiffusion:
     ) -> None:
         self.generator = generator
         self.generator.manual_seed(seed)
+        self.unet_steps = num_inference_steps
         # initialize x_t_latent (it can be any random tensor)
         if self.denoising_steps_num > 1:
             self.x_t_latent_buffer = torch.zeros(
@@ -531,7 +532,7 @@ class StreamDiffusion:
         prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
-            for _ in range(0, self.timesteps.size(0)):
+            for _ in range(0, self.unet_steps):
                 t_list = self.sub_timesteps_tensor
                 if self.denoising_steps_num > 1:
                     x_t_latent = torch.cat((x_t_latent, prev_latent_batch), dim=0)
