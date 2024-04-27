@@ -538,14 +538,11 @@ class StreamDiffusion:
 
         prev_latent_batch = self.x_t_latent_buffer
         
-        print(prev_latent_batch.size(), mask.size(), mask.size(), original_x_t_latent.size())
+        # print(prev_latent_batch.size(), mask.size(), mask.size(), original_x_t_latent.size())
         
         for i in range(0, len(prev_latent_batch)):
-            a = prev_latent_batch[i] * (mask)
-            b = original_x_t_latent[0] * (1-mask)
-            print(a.size())
-            print(b.size())
-            prev_latent_batch[i] = a + b
+            prev_latent_batch[i] = prev_latent_batch[i] * \
+                (mask) + original_x_t_latent[0] * (1-mask)
 
         if self.use_denoising_batch:
             t_list = self.sub_timesteps_tensor
@@ -801,7 +798,6 @@ class StreamDiffusion:
         )
         
         new_mask = mask[0].repeat(4, 1, 1)
-        print("new_mask", new_mask.size(), new_mask.dim(), new_mask[0][32][32]) 
 
         if x is not None:
             x = self.image_processor.preprocess(x, self.height, self.width).to(
