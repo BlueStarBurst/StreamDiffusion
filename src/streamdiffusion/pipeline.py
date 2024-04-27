@@ -564,7 +564,7 @@ class StreamDiffusion:
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
                     
-                self.x_t_latent_buffer = self.x_t_latent_buffer * new_mask + prev_latent_batch * (1-new_mask)
+                self.x_t_latent_buffer = self.x_t_latent_buffer * new_mask + x_0_pred_batch * (1-new_mask)
                 
                 print("denoising")
                 
