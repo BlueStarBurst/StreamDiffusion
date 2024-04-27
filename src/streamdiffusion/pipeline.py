@@ -538,7 +538,6 @@ class StreamDiffusion:
 
         prev_latent_batch = self.x_t_latent_buffer
         
-        mask = mask[0]
         print(prev_latent_batch.size(), mask.size(), mask.size(), original_x_t_latent.size())
         
         for i in range(0, len(prev_latent_batch)):
