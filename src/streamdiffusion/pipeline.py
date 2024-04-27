@@ -548,6 +548,7 @@ class StreamDiffusion:
                     print(new_mask[0][32][32])
                     
                     # overlay the original latent with the new latent using the mask
+                    # x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
                     x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
             
             print("repeating1")
@@ -564,7 +565,10 @@ class StreamDiffusion:
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
                     
-                # self.x_t_latent_buffer = self.x_t_latent_buffer * new_mask + prev_latent_batch * (1-new_mask)
+                for i in range(0, len(prev_latent_batch)):
+                    prev_latent_batch[i] = prev_latent_batch[i] * (new_mask) + original_x_t_latent[0] * (1-new_mask)
+                    
+                self.x_t_latent_buffer = self.x_t_latent_buffer * new_mask + prev_latent_batch * (1-new_mask)
                 
                 print("denoising")
                 
