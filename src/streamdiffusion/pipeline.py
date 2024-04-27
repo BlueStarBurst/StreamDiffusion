@@ -563,6 +563,8 @@ class StreamDiffusion:
                     self.x_t_latent_buffer = (
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
+                    
+                self.x_t_latent_buffer = self.x_t_latent_buffer * new_mask + prev_latent_batch * (1-new_mask)
                 
                 print("denoising")
                 
@@ -794,7 +796,7 @@ class StreamDiffusion:
 
         if mask is not None:
             x_0_pred_out = x_t_latent
-            for _ in range(10):
+            for _ in range(2):
                 x_0_pred_out = self.predict_x0_batch(
                     x_t_latent, mask=mask, mask_latent=masked_image_latents)
         else:
