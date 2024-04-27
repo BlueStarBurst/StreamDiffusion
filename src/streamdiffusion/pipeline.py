@@ -529,8 +529,7 @@ class StreamDiffusion:
 
         prev_latent_batch = self.x_t_latent_buffer
         for i in range(0, len(prev_latent_batch)):
-            prev_latent_batch[i] = prev_latent_batch[i] * \
-                (new_mask) + original_x_t_latent[0] * (1-new_mask)
+            prev_latent_batch[i] = prev_latent_batch[i] * (new_mask) + original_x_t_latent[0] * (1-new_mask)
 
         if self.use_denoising_batch:
             t_list = self.sub_timesteps_tensor
@@ -783,22 +782,24 @@ class StreamDiffusion:
             self.do_classifier_free_guidance,
         )
 
-        if x is not None:
-            x = self.image_processor.preprocess(x, self.height, self.width).to(
-                device=self.device, dtype=self.dtype
-            )
-            if self.similar_image_filter:
-                x = self.similar_filter(x)
-                if x is None:
-                    time.sleep(self.inference_time_ema)
-                    return self.prev_image_result
-            x_t_latent = self.encode_image(x)
-        else:
-            # TODO: check the dimension of x_t_latent
+        # if x is not None:
+        #     x = self.image_processor.preprocess(x, self.height, self.width).to(
+        #         device=self.device, dtype=self.dtype
+        #     )
+        #     if self.similar_image_filter:
+        #         x = self.similar_filter(x)
+        #         if x is None:
+        #             time.sleep(self.inference_time_ema)
+        #             return self.prev_image_result
+        #     x_t_latent = self.encode_image(x)
+        # else:
+        #     # TODO: check the dimension of x_t_latent
 
-            x_t_latent = torch.randn((1, 4, self.latent_height, self.latent_width)).to(
-                device=self.device, dtype=self.dtype
-            )
+        #     x_t_latent = torch.randn((1, 4, self.latent_height, self.latent_width)).to(
+        #         device=self.device, dtype=self.dtype
+        #     )
+            
+        x_t_latent = self.encode_image(x)
 
         if mask is not None:
             x_0_pred_out = x_t_latent
