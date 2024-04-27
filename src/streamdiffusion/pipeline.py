@@ -539,7 +539,16 @@ class StreamDiffusion:
                 )
             x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
             
-            
+            if mask is not None:
+                
+                for i in range(0, len(x_0_pred_batch)):
+                    # new_mask = mask[i].repeat(3, 1, 1, 1)
+                    print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
+                    
+                    print(new_mask[0][32][32])
+                    
+                    # overlay the original latent with the new latent using the mask
+                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
             
             print("repeating1")
 
@@ -565,17 +574,6 @@ class StreamDiffusion:
                 print("done")
                 x_0_pred_out = x_0_pred_batch
                 self.x_t_latent_buffer = None
-                
-            if mask is not None:
-                
-                for i in range(0, len(x_0_pred_batch)):
-                    # new_mask = mask[i].repeat(3, 1, 1, 1)
-                    print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
-                    
-                    print(new_mask[0][32][32])
-                    
-                    # overlay the original latent with the new latent using the mask
-                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask))
         else:
             self.init_noise = x_t_latent
             print("repeating2")
@@ -796,9 +794,9 @@ class StreamDiffusion:
 
         if mask is not None:
             x_0_pred_out = x_t_latent
-            for _ in range(2):
+            for _ in range(10):
                 x_0_pred_out = self.predict_x0_batch(
-                    x_0_pred_out, mask=mask, mask_latent=masked_image_latents)
+                    x_t_latent, mask=mask, mask_latent=masked_image_latents)
         else:
             x_0_pred_out = self.predict_x0_batch(x_t_latent)
         x_output = self.decode_image(x_0_pred_out).detach().clone()
