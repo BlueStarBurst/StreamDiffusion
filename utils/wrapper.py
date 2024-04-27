@@ -128,11 +128,11 @@ class StreamDiffusionWrapper:
                         "txt2img mode cannot use denoising batch with frame_buffer_size > 1."
                     )
 
-        if mode == "img2img":
-            if not use_denoising_batch:
-                raise NotImplementedError(
-                    "img2img mode must use denoising batch for now."
-                )
+        # if mode == "img2img":
+        #     if not use_denoising_batch:
+        #         raise NotImplementedError(
+        #             "img2img mode must use denoising batch for now."
+        #         )
 
         self.device = device
         self.dtype = dtype
