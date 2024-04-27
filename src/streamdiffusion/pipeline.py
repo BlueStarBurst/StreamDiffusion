@@ -539,16 +539,7 @@ class StreamDiffusion:
                 )
             x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
             
-            if mask is not None:
-                
-                for i in range(0, len(x_0_pred_batch)):
-                    # new_mask = mask[i].repeat(3, 1, 1, 1)
-                    print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
-                    
-                    print(new_mask[0][32][32])
-                    
-                    # overlay the original latent with the new latent using the mask
-                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask))
+            
             
             print("repeating1")
 
@@ -574,6 +565,17 @@ class StreamDiffusion:
                 print("done")
                 x_0_pred_out = x_0_pred_batch
                 self.x_t_latent_buffer = None
+                
+            if mask is not None:
+                
+                for i in range(0, len(x_0_pred_batch)):
+                    # new_mask = mask[i].repeat(3, 1, 1, 1)
+                    print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
+                    
+                    print(new_mask[0][32][32])
+                    
+                    # overlay the original latent with the new latent using the mask
+                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask))
         else:
             self.init_noise = x_t_latent
             print("repeating2")
