@@ -543,6 +543,8 @@ class StreamDiffusion:
         for i in range(0, len(prev_latent_batch)):
             a = prev_latent_batch[i] * (mask)
             b = original_x_t_latent[0] * (1-mask)
+            print(a.size())
+            print(b.size())
             prev_latent_batch[i] = a + b
 
         if self.use_denoising_batch:
