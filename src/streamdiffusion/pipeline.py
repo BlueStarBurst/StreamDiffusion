@@ -498,11 +498,15 @@ class StreamDiffusion:
             # denoised_batch = self.scheduler.step(model_pred, t_list[0], x_t_latent).denoised
             denoised_batch = self.scheduler_step_batch(
                 model_pred, x_t_latent, idx) 
+            
+            # model pred is a single tensor, so we need to repeat it for the batch size
+            model_pred = torch.cat([model_pred] * self.frame_bff_size, dim=0)
+            
             if self.cfg_type == "self" or self.cfg_type == "initialize":
-                scaled_noise = self.beta_prod_t_sqrt[idx] * self.init_noise
+                scaled_noise = self.beta_prod_t_sqrt * self.init_noise
                 delta_x = self.scheduler_step_batch(
                     model_pred, scaled_noise, idx)
-                alpha_next = torch.concat(
+                alpha_next = torch.cat(
                     [
                         self.alpha_prod_t_sqrt[1:],
                         torch.ones_like(self.alpha_prod_t_sqrt[0:1]),
@@ -510,7 +514,7 @@ class StreamDiffusion:
                     dim=0,
                 )
                 delta_x = alpha_next * delta_x
-                beta_next = torch.concat(
+                beta_next = torch.cat(
                     [
                         self.beta_prod_t_sqrt[1:],
                         torch.ones_like(self.beta_prod_t_sqrt[0:1]),
@@ -518,7 +522,7 @@ class StreamDiffusion:
                     dim=0,
                 )
                 delta_x = delta_x / beta_next
-                init_noise = torch.concat(
+                init_noise = torch.cat(
                     [self.init_noise[1:], self.init_noise[0:1]], dim=0
                 )
                 self.init_noise = init_noise + delta_x
