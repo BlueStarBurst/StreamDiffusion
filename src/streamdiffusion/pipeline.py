@@ -538,7 +538,7 @@ class StreamDiffusion:
 
         prev_latent_batch = self.x_t_latent_buffer
         
-        print(prev_latent_batch.size(), mask.size(), mask.size(), original_x_t_latent.size())
+        # print(prev_latent_batch.size(), mask.size(), mask.size(), original_x_t_latent.size())
         
         for i in range(0, len(prev_latent_batch)):
             prev_latent_batch[i] = prev_latent_batch[i] * \
@@ -557,17 +557,17 @@ class StreamDiffusion:
 
                 for i in range(0, len(x_0_pred_batch)):
                     # new_mask = mask[i].repeat(3, 1, 1, 1)
-                    print(x_0_pred_batch[i].size(), mask.size(
-                    ), mask.size(), original_x_t_latent.size())
+                    # print(x_0_pred_batch[i].size(), mask.size(
+                    # ), mask.size(), original_x_t_latent.size())
 
-                    print(mask[0][32][32])
+                    # print(mask[0][32][32])
 
                     # overlay the original latent with the new latent using the mask
                     # x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
                     x_0_pred_batch[i] = x_0_pred_batch[i] * \
                         (mask) + (original_x_t_latent[0] * (1-mask))
 
-            print("repeating1")
+            # print("repeating1")
 
             if self.denoising_steps_num > 1:
                 x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
@@ -584,19 +584,19 @@ class StreamDiffusion:
                 self.x_t_latent_buffer = self.x_t_latent_buffer * \
                     mask + prev_latent_batch * (1-mask)
 
-                print("denoising")
+                # print("denoising")
 
                 # if mask is not None:
                 #     print
                 # overlay the original latent with the new latent
                 # x_0_pred_out = x_0_pred_out * (1 - new_mask) + original_x_t_latent * new_mask
             else:
-                print("done")
+                # print("done")
                 x_0_pred_out = x_0_pred_batch
                 self.x_t_latent_buffer = None
         else:
             self.init_noise = x_t_latent
-            print("repeating2")
+            # print("repeating2")
             for idx, t in enumerate(self.sub_timesteps_tensor):
                 t = t.view(
                     1,
