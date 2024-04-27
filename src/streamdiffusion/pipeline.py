@@ -469,7 +469,7 @@ class StreamDiffusion:
                 model_pred, x_t_latent, idx)
             if self.cfg_type == "self" or self.cfg_type == "initialize":
                 scaled_noise = self.beta_prod_t_sqrt * self.stock_noise
-                
+
                 delta_x = self.scheduler_step_batch(
                     model_pred, scaled_noise, idx)
                 alpha_next = torch.concat(
@@ -492,12 +492,11 @@ class StreamDiffusion:
                     [self.init_noise[1:], self.init_noise[0:1]], dim=0
                 )
                 self.stock_noise = init_noise + delta_x
-                
 
         else:
             # denoised_batch = self.scheduler.step(model_pred, t_list[0], x_t_latent).denoised
             denoised_batch = self.scheduler_step_batch(
-                model_pred, x_t_latent, idx) 
+                model_pred, x_t_latent, idx)
 
         return denoised_batch, model_pred
 
@@ -524,13 +523,14 @@ class StreamDiffusion:
         mask: Optional[torch.Tensor] = None,
         mask_latent: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        
+
         original_x_t_latent = x_t_latent
         new_mask = mask[0].repeat(4, 1, 1)
-        
+
         prev_latent_batch = self.x_t_latent_buffer
         for i in range(0, len(prev_latent_batch)):
-            prev_latent_batch[i] = prev_latent_batch[i] * (new_mask) + original_x_t_latent[0] * (1-new_mask)
+            prev_latent_batch[i] = prev_latent_batch[i] * \
+                (new_mask) + original_x_t_latent[0] * (1-new_mask)
 
         if self.use_denoising_batch:
             t_list = self.sub_timesteps_tensor
@@ -540,19 +540,20 @@ class StreamDiffusion:
                     (self.init_noise[0:1], self.stock_noise[:-1]), dim=0
                 )
             x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
-            
+
             if mask is not None:
-                
+
                 for i in range(0, len(x_0_pred_batch)):
                     # new_mask = mask[i].repeat(3, 1, 1, 1)
-                    print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
-                    
+                    print(x_0_pred_batch[i].size(), mask.size(
+                    ), new_mask.size(), original_x_t_latent.size())
+
                     print(new_mask[0][32][32])
-                    
+
                     # overlay the original latent with the new latent using the mask
                     # x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
-                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
-            
+                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask))
+
             print("repeating1")
 
             if self.denoising_steps_num > 1:
@@ -566,15 +567,15 @@ class StreamDiffusion:
                     self.x_t_latent_buffer = (
                         self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
                     )
-                    
+
                 self.x_t_latent_buffer = self.x_t_latent_buffer * new_mask + prev_latent_batch * (1-new_mask)
-                
+
                 print("denoising")
-                
+
                 # if mask is not None:
                 #     print
-                    # overlay the original latent with the new latent
-                    # x_0_pred_out = x_0_pred_out * (1 - new_mask) + original_x_t_latent * new_mask
+                # overlay the original latent with the new latent
+                # x_0_pred_out = x_0_pred_out * (1 - new_mask) + original_x_t_latent * new_mask
             else:
                 print("done")
                 x_0_pred_out = x_0_pred_batch
@@ -589,13 +590,15 @@ class StreamDiffusion:
                     self.frame_bff_size,
                 )
                 x_0_pred, model_pred = self.unet_step(x_t_latent, t, idx)
-                
-                print(x_0_pred.size(), mask.size(), new_mask.size(), original_x_t_latent.size())
+
+                print(x_0_pred.size(), mask.size(),
+                      new_mask.size(), original_x_t_latent.size())
                 if mask is not None:
                     for i in range(0, len(x_0_pred)):
                         # overlay the original latent with the new latent using the mask
-                        x_0_pred[i] = x_0_pred[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred[i] * (1-new_mask)/2)
-                
+                        x_0_pred[i] = x_0_pred[i] * (new_mask) + (
+                            original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred[i] * (1-new_mask)/2)
+
                 if idx < len(self.sub_timesteps_tensor) - 1:
                     if self.do_add_noise:
                         x_t_latent = self.alpha_prod_t_sqrt[
