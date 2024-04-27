@@ -548,7 +548,7 @@ class StreamDiffusion:
                     print(new_mask[0][32][32])
                     
                     # overlay the original latent with the new latent using the mask
-                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
+                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask))
             
             print("repeating1")
 
