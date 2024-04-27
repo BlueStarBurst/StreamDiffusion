@@ -802,10 +802,8 @@ class StreamDiffusion:
         x_t_latent = self.encode_image(x)
 
         if mask is not None:
-            x_0_pred_out = x_t_latent
-            for _ in range(2):
                 x_0_pred_out = self.predict_x0_batch(
-                    x_0_pred_out, mask=mask, mask_latent=masked_image_latents)
+                    x_t_latent, mask=mask, mask_latent=masked_image_latents)
         else:
             x_0_pred_out = self.predict_x0_batch(x_t_latent)
         x_output = self.decode_image(x_0_pred_out).detach().clone()
