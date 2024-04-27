@@ -531,49 +531,50 @@ class StreamDiffusion:
         prev_latent_batch = self.x_t_latent_buffer
 
         if self.use_denoising_batch:
-            t_list = self.sub_timesteps_tensor
-            if self.denoising_steps_num > 1:
-                x_t_latent = torch.cat((x_t_latent, prev_latent_batch), dim=0)
-                self.stock_noise = torch.cat(
-                    (self.init_noise[0:1], self.stock_noise[:-1]), dim=0
-                )
-            x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
-            
-            if mask is not None:
+            for _ in range(0, self.timesteps.size(0)):
+                t_list = self.sub_timesteps_tensor
+                if self.denoising_steps_num > 1:
+                    x_t_latent = torch.cat((x_t_latent, prev_latent_batch), dim=0)
+                    self.stock_noise = torch.cat(
+                        (self.init_noise[0:1], self.stock_noise[:-1]), dim=0
+                    )
+                x_0_pred_batch, model_pred = self.unet_step(x_t_latent, t_list)
                 
-                for i in range(0, len(x_0_pred_batch)):
-                    # new_mask = mask[i].repeat(3, 1, 1, 1)
-                    print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
+                if mask is not None:
                     
-                    print(new_mask[0][32][32])
-                    
-                    # overlay the original latent with the new latent using the mask
-                    x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
-            
-            print("repeating1")
+                    for i in range(0, len(x_0_pred_batch)):
+                        # new_mask = mask[i].repeat(3, 1, 1, 1)
+                        print(x_0_pred_batch[i].size(), mask.size(), new_mask.size(), original_x_t_latent.size())
+                        
+                        print(new_mask[0][32][32])
+                        
+                        # overlay the original latent with the new latent using the mask
+                        x_0_pred_batch[i] = x_0_pred_batch[i] * (new_mask) + (original_x_t_latent[0] * (1-new_mask)/2 + x_0_pred_batch[i] * (1-new_mask)/2)
+                
+                print("repeating1")
 
-            if self.denoising_steps_num > 1:
-                x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
-                if self.do_add_noise:
-                    self.x_t_latent_buffer = (
-                        self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
-                        + self.beta_prod_t_sqrt[1:] * self.init_noise[1:]
-                    )
+                if self.denoising_steps_num > 1:
+                    x_0_pred_out = x_0_pred_batch[-1].unsqueeze(0)
+                    if self.do_add_noise:
+                        self.x_t_latent_buffer = (
+                            self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
+                            + self.beta_prod_t_sqrt[1:] * self.init_noise[1:]
+                        )
+                    else:
+                        self.x_t_latent_buffer = (
+                            self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
+                        )
+                    
+                    print("denoising")
+                    
+                    # if mask is not None:
+                    #     print
+                        # overlay the original latent with the new latent
+                        # x_0_pred_out = x_0_pred_out * (1 - new_mask) + original_x_t_latent * new_mask
                 else:
-                    self.x_t_latent_buffer = (
-                        self.alpha_prod_t_sqrt[1:] * x_0_pred_batch[:-1]
-                    )
-                
-                print("denoising")
-                
-                # if mask is not None:
-                #     print
-                    # overlay the original latent with the new latent
-                    # x_0_pred_out = x_0_pred_out * (1 - new_mask) + original_x_t_latent * new_mask
-            else:
-                print("done")
-                x_0_pred_out = x_0_pred_batch
-                self.x_t_latent_buffer = None
+                    print("done")
+                    x_0_pred_out = x_0_pred_batch
+                    self.x_t_latent_buffer = None
         else:
             self.init_noise = x_t_latent
             print("repeating2")
