@@ -585,6 +585,7 @@ class StreamDiffusion:
                 )
                 x_0_pred, model_pred = self.unet_step(x_t_latent, t, idx)
                 
+                print("denoising")
                 if mask is not None:
                     for i in range(0, len(x_0_pred)):
                         # overlay the original latent with the new latent using the mask
