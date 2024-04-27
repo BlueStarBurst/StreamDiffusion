@@ -801,6 +801,7 @@ class StreamDiffusion:
         )
         
         new_mask = mask[0].repeat(4, 1, 1)
+        print("new_mask", new_mask.size(), new_mask.dim(), new_mask[0][32][32]) 
 
         if x is not None:
             x = self.image_processor.preprocess(x, self.height, self.width).to(
