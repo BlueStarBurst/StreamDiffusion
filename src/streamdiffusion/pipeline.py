@@ -389,6 +389,7 @@ class StreamDiffusion:
         x_t_latent = self.add_noise(img_latent, self.init_noise[0], 0)
 
         if mask is not None:
+            print(x_t_latent.shape, mask.shape)
             x_t_latent = x_t_latent * mask + img_latent * (1 - mask)
 
         return x_t_latent
