@@ -484,7 +484,7 @@ class StreamDiffusion:
 
             if mask is not None:
                 # turn np array of (512, 512, 3) into tensor of (1, 64, 64)
-                mask = torch.tensor(mask).permute(2, 0, 1).unsqueeze(0)
+                mask = torch.tensor(mask).permute(2, 0, 1)[0].repeat(4, 1, 1).unsqueeze(0)
                 mask = mask.to(device=self.device, dtype=self.dtype)
 
                 # scale the mask to the size of the latent space
