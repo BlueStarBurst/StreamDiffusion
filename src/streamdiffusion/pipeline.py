@@ -482,14 +482,14 @@ class StreamDiffusion:
                     return self.prev_image_result
 
             if mask is not None:
-                # turn np array of (512, 512) into tensor of (1, 64, 64)
-                mask = torch.tensor(mask).unsqueeze(0).unsqueeze(0).to(
-                    device=self.device, dtype=self.dtype
-                )
+                # turn np array of (512, 512, 3) into tensor of (1, 64, 64)
+                mask = torch.tensor(mask).permute(2, 0, 1).unsqueeze(0)
+                mask = mask.to(device=self.device, dtype=self.dtype)
 
                 # scale the mask to the size of the latent space
-                mask = torch.nn.functional.interpolate(mask, size=(
-                    self.latent_height, self.latent_width), mode='nearest')
+                mask = torch.nn.functional.interpolate(
+                    mask, size=(self.latent_height, self.latent_width)
+                )
 
             x_t_latent = self.encode_image(x, mask)
 
