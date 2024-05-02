@@ -208,6 +208,7 @@ class StreamDiffusionWrapper:
         self,
         image: Optional[Union[str, Image.Image, torch.Tensor]] = None,
         prompt: Optional[str] = None,
+        mask: Optional[np.ndarray] = None,
     ) -> Union[Image.Image, List[Image.Image]]:
         """
         Performs img2img or txt2img based on the mode.
@@ -225,7 +226,7 @@ class StreamDiffusionWrapper:
             The generated image.
         """
         if self.mode == "img2img":
-            return self.img2img(image, prompt)
+            return self.img2img(image, prompt, mask)
         else:
             return self.txt2img(prompt)
 
@@ -267,7 +268,7 @@ class StreamDiffusionWrapper:
         return image
 
     def img2img(
-        self, image: Union[str, Image.Image, torch.Tensor], prompt: Optional[str] = None
+        self, image: Union[str, Image.Image, torch.Tensor], prompt: Optional[str] = None, mask: Optional[np.ndarray] = None
     ) -> Union[Image.Image, List[Image.Image], torch.Tensor, np.ndarray]:
         """
         Performs img2img.
@@ -288,7 +289,7 @@ class StreamDiffusionWrapper:
         if isinstance(image, str) or isinstance(image, Image.Image):
             image = self.preprocess_image(image)
 
-        image_tensor = self.stream(image)
+        image_tensor = self.stream(image, mask=mask)
         image = self.postprocess_image(image_tensor, output_type=self.output_type)
 
         if self.use_safety_checker:
