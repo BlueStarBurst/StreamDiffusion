@@ -6,7 +6,7 @@ from typing import List, Literal, Optional, Union, Dict
 
 import numpy as np
 import torch
-from diffusers import AutoencoderTiny, StableDiffusionPipeline
+from diffusers import AutoencoderTiny, StableDiffusionPipeline, StableDiffusionInpaintPipeline
 from PIL import Image
 
 from streamdiffusion import StreamDiffusion
@@ -47,6 +47,7 @@ class StreamDiffusionWrapper:
         seed: int = 2,
         use_safety_checker: bool = False,
         engine_dir: Optional[Union[str, Path]] = "engines",
+        inpaint: bool = False,
     ):
         """
         Initializes the StreamDiffusionWrapper.
@@ -127,11 +128,11 @@ class StreamDiffusionWrapper:
                         "txt2img mode cannot use denoising batch with frame_buffer_size > 1."
                     )
 
-        if mode == "img2img":
-            if not use_denoising_batch:
-                raise NotImplementedError(
-                    "img2img mode must use denoising batch for now."
-                )
+        # if mode == "img2img":
+        #     if not use_denoising_batch:
+        #         raise NotImplementedError(
+        #             "img2img mode must use denoising batch for now."
+        #         )
 
         self.device = device
         self.dtype = dtype
@@ -163,6 +164,7 @@ class StreamDiffusionWrapper:
             cfg_type=cfg_type,
             seed=seed,
             engine_dir=engine_dir,
+            inpaint=inpaint,
         )
 
         if device_ids is not None:
@@ -208,6 +210,7 @@ class StreamDiffusionWrapper:
         self,
         image: Optional[Union[str, Image.Image, torch.Tensor]] = None,
         prompt: Optional[str] = None,
+        mask: Optional[Union[str, Image.Image, torch.Tensor]] = None,
     ) -> Union[Image.Image, List[Image.Image]]:
         """
         Performs img2img or txt2img based on the mode.
@@ -225,7 +228,7 @@ class StreamDiffusionWrapper:
             The generated image.
         """
         if self.mode == "img2img":
-            return self.img2img(image, prompt)
+            return self.img2img(image, prompt, mask)
         else:
             return self.txt2img(prompt)
 
@@ -267,7 +270,7 @@ class StreamDiffusionWrapper:
         return image
 
     def img2img(
-        self, image: Union[str, Image.Image, torch.Tensor], prompt: Optional[str] = None
+        self, image: Union[str, Image.Image, torch.Tensor], prompt: Optional[str] = None, mask: Optional[Union[str, Image.Image, torch.Tensor]] = None
     ) -> Union[Image.Image, List[Image.Image], torch.Tensor, np.ndarray]:
         """
         Performs img2img.
@@ -288,7 +291,7 @@ class StreamDiffusionWrapper:
         if isinstance(image, str) or isinstance(image, Image.Image):
             image = self.preprocess_image(image)
 
-        image_tensor = self.stream(image)
+        image_tensor = self.stream(image, mask_image=mask)
         image = self.postprocess_image(image_tensor, output_type=self.output_type)
 
         if self.use_safety_checker:
@@ -362,6 +365,7 @@ class StreamDiffusionWrapper:
         cfg_type: Literal["none", "full", "self", "initialize"] = "self",
         seed: int = 2,
         engine_dir: Optional[Union[str, Path]] = "engines",
+        inpaint: bool = False,
     ) -> StreamDiffusion:
         """
         Loads the model.
@@ -414,14 +418,24 @@ class StreamDiffusionWrapper:
         """
 
         try:  # Load from local directory
-            pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_pretrained(
-                model_id_or_path,
-            ).to(device=self.device, dtype=self.dtype)
+            if inpaint:
+                pipe: StableDiffusionInpaintPipeline = StableDiffusionInpaintPipeline.from_pretrained(
+                    model_id_or_path,
+                ).to(device=self.device, dtype=self.dtype)
+            else:
+                pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_pretrained(
+                    model_id_or_path,
+                ).to(device=self.device, dtype=self.dtype)
 
         except ValueError:  # Load from huggingface
-            pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_single_file(
-                model_id_or_path,
-            ).to(device=self.device, dtype=self.dtype)
+            if inpaint:
+                pipe: StableDiffusionInpaintPipeline = StableDiffusionInpaintPipeline.from_single_file(
+                    model_id_or_path,
+                ).to(device=self.device, dtype=self.dtype)
+            else:
+                pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_single_file(
+                    model_id_or_path,
+                ).to(device=self.device, dtype=self.dtype)
         except Exception:  # No model found
             traceback.print_exc()
             print("Model load has failed. Doesn't exist.")
@@ -599,18 +613,18 @@ class StreamDiffusionWrapper:
                         else stream.frame_bff_size,
                     )
 
-                cuda_stream = cuda.Stream()
+                cuda_steram = cuda.Stream()
 
                 vae_config = stream.vae.config
                 vae_dtype = stream.vae.dtype
 
                 stream.unet = UNet2DConditionModelEngine(
-                    unet_path, cuda_stream, use_cuda_graph=False
+                    unet_path, cuda_steram, use_cuda_graph=False
                 )
                 stream.vae = AutoencoderKLEngine(
                     vae_encoder_path,
                     vae_decoder_path,
-                    cuda_stream,
+                    cuda_steram,
                     stream.pipe.vae_scale_factor,
                     use_cuda_graph=False,
                 )
