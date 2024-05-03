@@ -389,7 +389,7 @@ class StreamDiffusion:
         x_t_latent = self.add_noise(img_latent, self.init_noise[0], 0)
 
         if mask is not None:
-            print(mask.shape, mask[0].shape, img_latent.shape, mask[0][0][32][32], img_latent[0][0][32][32])
+            # print(mask.shape, mask[0].shape, img_latent.shape, mask[0][0][32][32], img_latent[0][0][32][32])
             x_t_latent = x_t_latent * mask + img_latent * (1 - mask)
 
         return x_t_latent
@@ -410,7 +410,7 @@ class StreamDiffusion:
 
         prev_latent_batch = self.x_t_latent_buffer
         
-        print(prev_latent_batch.size(), mask.size(), mask.size(), original_x_t_latent.size())
+        # print(prev_latent_batch.size(), mask.size(), mask.size(), original_x_t_latent.size())
         
         for i in range(0, len(prev_latent_batch)):
             prev_latent_batch[i] = prev_latent_batch[i] * \
@@ -477,8 +477,8 @@ class StreamDiffusion:
                 )
                 x_0_pred, model_pred = self.unet_step(x_t_latent, t, idx)
 
-                print(x_0_pred.size(), mask.size(),
-                      mask.size(), original_x_t_latent.size())
+                # print(x_0_pred.size(), mask.size(),
+                #       mask.size(), original_x_t_latent.size())
                 if mask is not None:
                     for i in range(0, len(x_0_pred)):
                         # overlay the original latent with the new latent using the mask
